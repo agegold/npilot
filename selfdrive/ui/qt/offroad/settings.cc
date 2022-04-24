@@ -180,7 +180,7 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
     }
   });
     addItem(calokbtn);
-    
+
   if (Hardware::TICI()) {
     auto regulatoryBtn = new ButtonControl("Regulatory", "VIEW", "");
     connect(regulatoryBtn, &ButtonControl::clicked, [=]() {
@@ -219,18 +219,6 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
         std::system("sudo reboot");
       else
         std::system("reboot");
-
-  QPushButton *gitpull_btn = new QPushButton("업데이트");
-  gitpull_btn->setObjectName("gitpull_btn");
-  power_layout->addWidget(gitpull_btn);
-
-  const char* gitpull = "sh /data/openpilot/gitpull.sh";
-  QObject::connect(gitpull_btn, &QPushButton::clicked, [=]() {
-    std::system(gitpull);
-    if (ConfirmationDialog::confirm("업데이트가 완료 되었습니다. 재부팅 하시겠습니까?", this)) {
-      QTimer::singleShot(1000, []() { 
-       Hardware::reboot(); });
-
     }
   });
 
