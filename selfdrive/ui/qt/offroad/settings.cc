@@ -172,6 +172,15 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
     addItem(retrainingBtn);
   }
 
+  const char* cal_ok = "cp -f /data/openpilot/selfdrive/assets/CalibrationParams /data/params/d/";
+  auto calokbtn = new ButtonControl("캘리브레이션 강제 활성화", "실행");
+  QObject::connect(calokbtn, &ButtonControl::clicked, [=]() {
+    if (ConfirmationDialog::confirm("캘리브레이션을 강제로 설정합니다. 인게이지 확인용이니 실 주행시에는 초기화 하시기 바랍니다.", this)){
+      std::system(cal_ok);
+    }
+  });
+    addItem(calokbtn);
+    
   if (Hardware::TICI()) {
     auto regulatoryBtn = new ButtonControl("Regulatory", "VIEW", "");
     connect(regulatoryBtn, &ButtonControl::clicked, [=]() {
@@ -210,6 +219,16 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
         std::system("sudo reboot");
       else
         std::system("reboot");
+
+  power_layout->addWidget(gitpull_btn);
+
+  const char* gitpull = "sh /data/openpilot/gitpull.sh";
+  QObject::connect(gitpull_btn, &QPushButton::clicked, [=]() {
+    std::system(gitpull);
+    if (ConfirmationDialog::confirm("업데이트가 완료 되었습니다. 재부팅 하시겠습니까?", this)) {
+      QTimer::singleShot(1000, []() { 
+       Hardware::reboot(); });
+
     }
   });
 
