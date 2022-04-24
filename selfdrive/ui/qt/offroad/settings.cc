@@ -220,6 +220,8 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
       else
         std::system("reboot");
 
+  QPushButton *gitpull_btn = new QPushButton("업데이트:);
+  gitpull_btn->setObjectName("gitpull_btn");
   power_layout->addWidget(gitpull_btn);
 
   const char* gitpull = "sh /data/openpilot/gitpull.sh";
