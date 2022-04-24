@@ -75,9 +75,9 @@ void Sidebar::updateState(const UIState &s) {
   }
   setProperty("tempStatus", QVariant::fromValue(tempStatus));
 
-  ItemStatus pandaStatus = {"VEHICLE\nONLINE", good_color};
+  ItemStatus pandaStatus = {"판다\n연결됨", good_color};
   if (s.scene.pandaType == cereal::PandaState::PandaType::UNKNOWN) {
-    pandaStatus = {"NO\nPANDA", danger_color};
+    pandaStatus = {"판다\n연결안됨", danger_color};
   } /*else if (s.scene.started && !sm["liveLocationKalman"].getLiveLocationKalman().getGpsOK()) {
     pandaStatus = {"GPS\nSEARCH", warning_color};
   }*/
