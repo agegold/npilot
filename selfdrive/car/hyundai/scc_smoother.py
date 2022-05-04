@@ -3,15 +3,13 @@ import random
 from math import sqrt
 
 import numpy as np
-from common.numpy_fast import clip, interp
+from common.numpy_fast import clip, interp, mean
 from cereal import car
 from common.realtime import DT_CTRL
 from common.conversions import Conversions as CV
 from selfdrive.car.hyundai.values import Buttons
 from common.params import Params
-from selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX, V_CRUISE_MIN, V_CRUISE_DELTA_KM, V_CRUISE_DELTA_MI, \
-  CONTROL_N
-from selfdrive.controls.lib.lane_planner import TRAJECTORY_SIZE
+from selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX, V_CRUISE_MIN, V_CRUISE_DELTA_KM, V_CRUISE_DELTA_MI, CONTROL_N
 from selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import AUTO_TR_CRUISE_GAP
 
 from selfdrive.ntune import ntune_scc_get
@@ -19,6 +17,7 @@ from selfdrive.road_speed_limiter import road_speed_limiter_get_max_speed, road_
   get_road_speed_limiter
 
 SYNC_MARGIN = 3.
+CREEP_SPEED = 2.3
 
 # do not modify
 MIN_SET_SPEED_KPH = V_CRUISE_MIN
@@ -298,7 +297,7 @@ class SccSmoother:
 
     lateralPlan = sm['lateralPlan']
     if len(lateralPlan.curvatures) == CONTROL_N:
-      curv = lateralPlan.curvatures[-1]
+      curv = (lateralPlan.curvatures[-1] + lateralPlan.curvatures[-2]) / 2.
       a_y_max = 2.975 - v_ego * 0.0375  # ~1.85 @ 75mph, ~2.6 @ 25mph
       v_curvature = sqrt(a_y_max / max(abs(curv), 1e-4))
       model_speed = v_curvature * 0.85 * ntune_scc_get("sccCurvatureFactor")
@@ -337,7 +336,7 @@ class SccSmoother:
     if not self.longcontrol or self.max_speed_clu <= 0:
       self.max_speed_clu = max_speed
     else:
-      kp = 0.02 if limited_curv else 0.01
+      kp = 0.01 #if limited_curv else 0.01
       error = max_speed - self.max_speed_clu
       self.max_speed_clu = self.max_speed_clu + error * kp
 
@@ -351,11 +350,17 @@ class SccSmoother:
     #  if not lead.radar:
     #    brake_factor *= 0.975
 
+    start_boost = interp(CS.out.vEgo, [0.0, CREEP_SPEED, 2 * CREEP_SPEED], [0.6, 0.6, 0.0])
+    is_accelerating = interp(accel, [0.0, 0.2], [0.0, 1.0])
+    boost = start_boost * is_accelerating
+
+    accel += boost
+
     if accel > 0:
       accel *= gas_factor
     else:
       accel *= brake_factor
-      
+
     return accel
 
   def get_stock_cam_accel(self, apply_accel, stock_accel, scc11):
