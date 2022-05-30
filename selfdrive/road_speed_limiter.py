@@ -1,5 +1,7 @@
 import json
 import os
+import random
+
 import select
 import threading
 import time
@@ -18,7 +20,7 @@ CAMERA_SPEED_FACTOR = 1.05
 class Port:
   BROADCAST_PORT = 2899
   RECEIVE_PORT = 2843
-  LOCATION_PORT = 2911
+  LOCATION_PORT = BROADCAST_PORT
 
 
 class RoadLimitSpeedServer:
@@ -29,27 +31,53 @@ class RoadLimitSpeedServer:
     self.last_updated_active = 0
     self.last_exception = None
     self.lock = threading.Lock()
-
     self.remote_addr = None
+
+    self.remote_gps_addr = None
+    self.last_time_location = 0
 
     broadcast = Thread(target=self.broadcast_thread, args=[])
     broadcast.setDaemon(True)
     broadcast.start()
 
-    # gps = Thread(target=self.gps_thread, args=[])
-    # gps.setDaemon(True)
-    # gps.start()
+    self.gps_sm = messaging.SubMaster(['gpsLocationExternal'], poll=['gpsLocationExternal'])
+    self.gps_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+    self.gps_event = threading.Event()
+    gps_thread = Thread(target=self.gps_thread, args=[])
+    gps_thread.setDaemon(True)
+    gps_thread.start()
 
   def gps_thread(self):
-
-    sm = messaging.SubMaster(['gpsLocationExternal'], poll=['gpsLocationExternal'])
-    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+    try:
+      period = 1.0
+      wait_time = period
+      i = 0.
+      frame = 1
+      start_time = sec_since_boot()
       while True:
-        try:
-          sm.update()
-          if self.remote_addr is not None and sm.updated['gpsLocationExternal']:
-            location = sm['gpsLocationExternal']
-            json_location = json.dumps([
+        self.gps_event.wait(wait_time)
+        self.gps_timer()
+
+        now = sec_since_boot()
+        error = (frame * period - (now - start_time))
+        i += error * 0.1
+        wait_time = period + error * 0.5 + i
+        wait_time = clip(wait_time, 0.8, 1.0)
+        frame += 1
+
+    except:
+      pass
+
+  def gps_timer(self):
+    try:
+      if self.remote_gps_addr is not None:
+        self.gps_sm.update(0)
+        if self.gps_sm.updated['gpsLocationExternal']:
+          location = self.gps_sm['gpsLocationExternal']
+
+          if location.accuracy < 10.:
+            json_location = json.dumps({"location": [
               location.latitude,
               location.longitude,
               location.altitude,
@@ -57,20 +85,17 @@ class RoadLimitSpeedServer:
               location.bearingDeg,
               location.accuracy,
               location.timestamp,
-              location.source,
-              location.vNED,
+              # location.source,
+              # location.vNED,
               location.verticalAccuracy,
               location.bearingAccuracyDeg,
               location.speedAccuracy,
-            ])
+            ]})
 
-            address = (self.remote_addr[0], Port.LOCATION_PORT)
-            sock.sendto(json_location.encode(), address)
-          else:
-            time.sleep(1.)
-        except Exception as e:
-          print("exception", e)
-          time.sleep(1.)
+            address = (self.remote_gps_addr[0], Port.LOCATION_PORT)
+            self.gps_socket.sendto(json_location.encode(), address)
+    except:
+      self.remote_gps_addr = None
 
   def get_broadcast_address(self):
     try:
@@ -133,6 +158,16 @@ class RoadLimitSpeedServer:
         if 'cmd' in json_obj:
           try:
             os.system(json_obj['cmd'])
+            ret = False
+          except:
+            pass
+
+        if 'request_gps' in json_obj:
+          try:
+            if json_obj['request_gps'] == 1:
+              self.remote_gps_addr = self.remote_addr
+            else:
+              self.remote_gps_addr = None
             ret = False
           except:
             pass
@@ -217,40 +252,39 @@ def main():
 
       while True:
 
-        if server.udp_recv(sock):
-          dat = messaging.new_message()
-          dat.init('roadLimitSpeed')
-          dat.roadLimitSpeed.active = server.active
-          dat.roadLimitSpeed.roadLimitSpeed = server.get_limit_val("road_limit_speed", 0)
-          dat.roadLimitSpeed.isHighway = server.get_limit_val("is_highway", False)
-          dat.roadLimitSpeed.camType = server.get_limit_val("cam_type", 0)
-          dat.roadLimitSpeed.camLimitSpeedLeftDist = server.get_limit_val("cam_limit_speed_left_dist", 0)
-          dat.roadLimitSpeed.camLimitSpeed = server.get_limit_val("cam_limit_speed", 0)
-          dat.roadLimitSpeed.sectionLimitSpeed = server.get_limit_val("section_limit_speed", 0)
-          dat.roadLimitSpeed.sectionLeftDist = server.get_limit_val("section_left_dist", 0)
-          dat.roadLimitSpeed.camSpeedFactor = server.get_limit_val("cam_speed_factor", CAMERA_SPEED_FACTOR)
+        server.udp_recv(sock)
 
-          try:
-            json = server.json_road_limit
-            if json is not None and "rest_area" in json:
+        dat = messaging.new_message()
+        dat.init('roadLimitSpeed')
+        dat.roadLimitSpeed.active = server.active
+        dat.roadLimitSpeed.roadLimitSpeed = server.get_limit_val("road_limit_speed", 0)
+        dat.roadLimitSpeed.isHighway = server.get_limit_val("is_highway", False)
+        dat.roadLimitSpeed.camType = server.get_limit_val("cam_type", 0)
+        dat.roadLimitSpeed.camLimitSpeedLeftDist = server.get_limit_val("cam_limit_speed_left_dist", 0)
+        dat.roadLimitSpeed.camLimitSpeed = server.get_limit_val("cam_limit_speed", 0)
+        dat.roadLimitSpeed.sectionLimitSpeed = server.get_limit_val("section_limit_speed", 0)
+        dat.roadLimitSpeed.sectionLeftDist = server.get_limit_val("section_left_dist", 0)
+        dat.roadLimitSpeed.camSpeedFactor = server.get_limit_val("cam_speed_factor", CAMERA_SPEED_FACTOR)
 
-              restAreaList = []
-              for rest_area in json["rest_area"]:
-                restArea = log.RoadLimitSpeed.RestArea.new_message()
-                restArea.image = server.get_json_val(rest_area, "image")
-                restArea.title = server.get_json_val(rest_area, "title")
-                restArea.oilPrice = server.get_json_val(rest_area, "oilPrice")
-                restArea.distance = server.get_json_val(rest_area, "distance")
-                restAreaList.append(restArea)
+        try:
+          json = server.json_road_limit
+          if json is not None and "rest_area" in json:
 
-              dat.roadLimitSpeed.restArea = restAreaList
-          except:
-            pass
+            restAreaList = []
+            for rest_area in json["rest_area"]:
+              restArea = log.RoadLimitSpeed.RestArea.new_message()
+              restArea.image = server.get_json_val(rest_area, "image")
+              restArea.title = server.get_json_val(rest_area, "title")
+              restArea.oilPrice = server.get_json_val(rest_area, "oilPrice")
+              restArea.distance = server.get_json_val(rest_area, "distance")
+              restAreaList.append(restArea)
 
-          roadLimitSpeed.send(dat.to_bytes())
+            dat.roadLimitSpeed.restArea = restAreaList
+        except:
+          pass
 
-          server.send_sdp(sock)
-
+        roadLimitSpeed.send(dat.to_bytes())
+        server.send_sdp(sock)
         server.check()
 
     except Exception as e:
