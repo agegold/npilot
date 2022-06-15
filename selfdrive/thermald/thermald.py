@@ -17,13 +17,13 @@ from common.filter_simple import FirstOrderFilter
 from common.params import Params
 from common.realtime import DT_TRML, sec_since_boot
 from selfdrive.controls.lib.alertmanager import set_offroad_alert
-from selfdrive.hardware import HARDWARE, TICI, AGNOS
+from system.hardware import HARDWARE, TICI, AGNOS
 from selfdrive.loggerd.config import get_available_percent
 from selfdrive.statsd import statlog
-from selfdrive.swaglog import cloudlog
+from system.swaglog import cloudlog
 from selfdrive.thermald.power_monitoring import PowerMonitoring
 from selfdrive.thermald.fan_controller import TiciFanController
-from selfdrive.version import terms_version, training_version
+from system.version import terms_version, training_version
 
 ThermalStatus = log.DeviceState.ThermalStatus
 NetworkType = log.DeviceState.NetworkType
@@ -201,7 +201,6 @@ def thermald_thread(end_event, hw_queue):
   fan_controller = None
 
   restart_triggered_ts = 0.
-  panda_state_ts = 0.
 
   while not end_event.is_set():
     sm.update(PANDA_STATES_TIMEOUT)
@@ -227,9 +226,6 @@ def thermald_thread(end_event, hw_queue):
       onroad_conditions["ignition"] = any(ps.ignitionLine or ps.ignitionCan for ps in pandaStates if ps.pandaType != log.PandaState.PandaType.unknown)
 
       pandaState = pandaStates[0]
-
-      if pandaState.pandaType != log.PandaState.PandaType.unknown:
-        panda_state_ts = sec_since_boot()
 
       in_car = pandaState.harnessStatus != log.PandaState.HarnessStatus.notConnected
 
@@ -268,7 +264,7 @@ def thermald_thread(end_event, hw_queue):
     current_filter.update(msg.deviceState.batteryCurrent / 1e6)
 
     max_comp_temp = temp_filter.update(
-      max(max(msg.deviceState.cpuTempC), msg.deviceState.memoryTempC, max(msg.deviceState.gpuTempC), max(msg.deviceState.pmicTempC))
+      max(max(msg.deviceState.cpuTempC), msg.deviceState.memoryTempC, max(msg.deviceState.gpuTempC))
     )
 
     if fan_controller is not None:

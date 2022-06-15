@@ -11,7 +11,7 @@ from common.params import Params, put_nonblocking
 import cereal.messaging as messaging
 from common.conversions import Conversions as CV
 from panda import ALTERNATIVE_EXPERIENCE
-from selfdrive.swaglog import cloudlog
+from system.swaglog import cloudlog
 from selfdrive.boardd.boardd import can_list_to_can_capnp
 from selfdrive.car.car_helpers import get_car, get_startup_event, get_one_can
 from selfdrive.controls.lib.lane_planner import CAMERA_OFFSET
@@ -28,7 +28,7 @@ from selfdrive.controls.lib.events import Events, ET
 from selfdrive.controls.lib.alertmanager import AlertManager, set_offroad_alert
 from selfdrive.controls.lib.vehicle_model import VehicleModel
 from selfdrive.locationd.calibrationd import Calibration
-from selfdrive.hardware import HARDWARE
+from system.hardware import HARDWARE
 from selfdrive.manager.process_config import managed_processes
 from selfdrive.car.hyundai.scc_smoother import SccSmoother
 from selfdrive.ntune import ntune_common_get, ntune_common_enabled, ntune_scc_get
@@ -188,7 +188,6 @@ class Controls:
     self.right_lane_visible = False
 
     self.disable_op_fcw = params.get_bool('DisableOpFcw')
-    self.mad_mode_enabled = Params().get_bool('MadModeEnabled')
 
     # TODO: no longer necessary, aside from process replay
     self.sm['liveParameters'].valid = True
@@ -229,10 +228,9 @@ class Controls:
       return
 
     # Disable on rising edge of accelerator or brake. Also disable on brake when speed > 0
-    if not self.mad_mode_enabled:
-      if (CS.gasPressed and not self.CS_prev.gasPressed and self.disengage_on_accelerator) or \
-        (CS.brakePressed and (not self.CS_prev.brakePressed or not CS.standstill)):
-        self.events.add(EventName.pedalPressed)
+    #if (CS.gasPressed and not self.CS_prev.gasPressed and self.disengage_on_accelerator) or \
+    #        (CS.brakePressed and (not self.CS_prev.brakePressed or not CS.standstill)):
+    #  self.events.add(EventName.pedalPressed)
 
     if CS.gasPressed:
       self.events.add(EventName.pedalPressedPreEnable if self.disengage_on_accelerator else

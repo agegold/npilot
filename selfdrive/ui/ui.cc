@@ -10,7 +10,7 @@
 #include "common/swaglog.h"
 #include "common/util.h"
 #include "common/watchdog.h"
-#include "selfdrive/hardware/hw.h"
+#include "system/hardware/hw.h"
 
 #define BACKLIGHT_DT 0.05
 #define BACKLIGHT_TS 10.00
@@ -238,7 +238,7 @@ void UIState::updateStatus() {
 UIState::UIState(QObject *parent) : QObject(parent) {
   sm = std::make_unique<SubMaster, const std::initializer_list<const char *>>({
     "modelV2", "controlsState", "liveCalibration", "radarState", "deviceState", "roadCameraState",
-    "pandaStates", "carParams", "driverMonitoringState", "sensorEvents", "carState", "liveLocationKalman",
+    "pandaStates", "carParams", "sensorEvents", "carState", "liveLocationKalman",
     "wideRoadCameraState", "managerState", "navInstruction", "navRoute",
     "gpsLocationExternal", "carControl", "liveParameters", "roadLimitSpeed",
   });

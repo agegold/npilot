@@ -14,7 +14,7 @@
 
 #include "common/params.h"
 #include "common/util.h"
-#include "selfdrive/hardware/hw.h"
+#include "system/hardware/hw.h"
 #include "selfdrive/ui/qt/widgets/controls.h"
 #include "selfdrive/ui/qt/widgets/input.h"
 #include "selfdrive/ui/qt/widgets/scrollview.h"
@@ -590,12 +590,6 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
                                             "Enable HKG Long Control",
                                             "warnings: it is beta, be careful!! Openpilot will control the speed of your car",
                                             "../assets/offroad/icon_road.png",
-                                            this));
-
-  toggles.append(new ParamControl("MadModeEnabled",
-                                            "Enable HKG MAD mode",
-                                            "Openpilot will engage when turn cruise control on",
-                                            "../assets/offroad/icon_openpilot.png",
                                             this));
 
   toggles.append(new ParamControl("IsLdwsCar",
