@@ -294,7 +294,7 @@ class CarInterface(CarInterfaceBase):
       ret.wheelbase = 2.895
       ret.centerToFront = ret.wheelbase * 0.5
       tire_stiffness_factor = 0.8
-    elif candidate in [CAR.K7, CAR.K7_HEV]:
+    elif candidate in [CAR.K7, CAR.K7_HEV, CAR.K7_2020]:
       tire_stiffness_factor = 0.7
       ret.mass = 1650. + STD_CARGO_KG
       ret.wheelbase = 2.855
