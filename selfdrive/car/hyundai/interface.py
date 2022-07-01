@@ -84,7 +84,6 @@ class CarInterface(CarInterfaceBase):
 
     ret.steerRatio = 16.5
     ret.steerActuatorDelay = 0.2
-    ret.steerRateCost = 0.4
 
     ret.steerLimitTimer = 2.5
 
@@ -122,7 +121,6 @@ class CarInterface(CarInterfaceBase):
       # thanks to 파파
       ret.steerRatio = 16.0
       ret.steerActuatorDelay = 0.075
-      ret.steerRateCost = 0.4
 
       if ret.lateralTuning.which() == 'torque':
         ret.lateralTuning.torque.useSteeringAngle = True
@@ -172,7 +170,6 @@ class CarInterface(CarInterfaceBase):
       # thanks to 지구별(alexhys)
       ret.steerRatio = 16.0
       ret.steerActuatorDelay = 0.075
-      ret.steerRateCost = 0.4
 
       if ret.lateralTuning.which() == 'torque':
         ret.lateralTuning.torque.useSteeringAngle = True
@@ -251,8 +248,8 @@ class CarInterface(CarInterfaceBase):
       ret.wheelbase = 2.80
       tire_stiffness_factor = 0.7
       ret.centerToFront = ret.wheelbase * 0.4
-    elif candidate in [CAR.K5_2021]:
-      ret.mass = 3228. * CV.LB_TO_KG
+    elif candidate in [CAR.K5_2021, CAR.K5_HEV_2022]:
+      ret.mass = 1515. + STD_CARGO_KG
       ret.wheelbase = 2.85
       tire_stiffness_factor = 0.7
     elif candidate == CAR.STINGER:
@@ -303,7 +300,6 @@ class CarInterface(CarInterfaceBase):
       tire_stiffness_factor = 0.8
 
       ret.steerRatio = 14.5
-      ret.steerRateCost = 0.4
 
       if ret.lateralTuning.which() == 'torque':
         ret.lateralTuning.torque.useSteeringAngle = True
