@@ -1,7 +1,7 @@
-const int HYUNDAI_MAX_STEER = 409;             // like stock
+const int HYUNDAI_MAX_STEER = 384;             // like stock
 const int HYUNDAI_MAX_RT_DELTA = 112;          // max delta torque allowed for real time checks
 const uint32_t HYUNDAI_RT_INTERVAL = 250000;   // 250ms between real time checks
-const int HYUNDAI_MAX_RATE_UP = 3;
+const int HYUNDAI_MAX_RATE_UP = 5;
 const int HYUNDAI_MAX_RATE_DOWN = 7;
 const int HYUNDAI_DRIVER_TORQUE_ALLOWANCE = 50;
 const int HYUNDAI_DRIVER_TORQUE_FACTOR = 2;
@@ -71,7 +71,7 @@ enum {
 
 // some newer HKG models can re-enable after spamming cancel button,
 // so keep track of user button presses to deny engagement if no interaction
-const uint8_t HYUNDAI_PREV_BUTTON_SAMPLES = 4;  // roughly 80 ms
+const uint8_t HYUNDAI_PREV_BUTTON_SAMPLES = 8;  // roughly 160 ms
 uint8_t hyundai_last_button_interaction;  // button messages since the user pressed an enable button
 
 bool hyundai_legacy = false;

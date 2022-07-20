@@ -79,6 +79,12 @@ void OnroadWindow::updateState(const UIState &s) {
     alerts->updateAlert(alert, bgColor);
   }
 
+  if (s.scene.map_on_left) {
+    split->setDirection(QBoxLayout::LeftToRight);
+  } else {
+    split->setDirection(QBoxLayout::RightToLeft);
+  }
+
   nvg->updateState(s);
 
   if (bg != bgColor) {
@@ -149,7 +155,7 @@ void OnroadWindow::offroadTransition(bool offroad) {
       QObject::connect(uiState(), &UIState::offroadTransition, m, &MapWindow::offroadTransition);
 
       m->setFixedWidth(topWidget(this)->width() / 2);
-      split->addWidget(m, 0, Qt::AlignRight);
+      split->insertWidget(0, m);
 
       // Make map visible after adding to split
       m->offroadTransition(offroad);
@@ -471,7 +477,7 @@ void NvgWindow::drawHud(QPainter &p, const cereal::ModelDataV2::Reader &model) {
   drawMaxSpeed(p);
   drawSpeed(p);
   drawSteer(p);
-  drawThermal(p);
+  drawDeviceState(p);
   drawRestArea(p);
   //drawTurnSignals(p);
   drawGpsStatus(p);
@@ -717,6 +723,8 @@ void NvgWindow::drawMaxSpeed(QPainter &p) {
   const int corner_radius = 32;
   int max_speed_height = 210;
 
+  QColor bgColor = QColor(0, 0, 0, 166);
+
   {
     // draw board
     QPainterPath path;
@@ -740,7 +748,7 @@ void NvgWindow::drawMaxSpeed(QPainter &p) {
     }
 
     p.setPen(Qt::NoPen);
-    p.fillPath(path.simplified(), QColor(0, 0, 0, 166));
+    p.fillPath(path.simplified(), bgColor);
   }
 
   QString str;
@@ -816,6 +824,37 @@ void NvgWindow::drawMaxSpeed(QPainter &p) {
     text_rect.moveCenter({b_rect.center().x(), 0});
     text_rect.moveTop(b_rect.top() + (b_rect.height() - text_rect.height()) / 2);
     p.drawText(text_rect, Qt::AlignCenter, str);
+
+    // left dist
+    QRect rcLeftDist;
+    QString strLeftDist;
+
+    if(left_dist < 1000)
+      strLeftDist.sprintf("%dm", left_dist);
+    else
+      strLeftDist.sprintf("%.1fkm", left_dist / 1000.f);
+
+    QFont font("Inter");
+    font.setPixelSize(55);
+    font.setStyleName("Bold");
+
+    QFontMetrics fm(font);
+    int width = fm.width(strLeftDist);
+
+    padding = 10;
+
+    int center_x = x_start + board_width / 2;
+    rcLeftDist.setRect(center_x - width / 2, y_start+board_height+15, width, font.pixelSize()+10);
+    rcLeftDist.adjust(-padding*2, -padding, padding*2, padding);
+
+    p.setPen(Qt::NoPen);
+    p.setBrush(bgColor);
+    p.drawRoundedRect(rcLeftDist, 20, 20);
+
+    configFont(p, "Inter", 55, "Bold");
+    p.setBrush(Qt::NoBrush);
+    p.setPen(QColor(255, 255, 255, 230));
+    p.drawText(rcLeftDist, Qt::AlignCenter|Qt::AlignVCenter, strLeftDist);
   }
   else if(roadLimitSpeed > 0 && roadLimitSpeed < 200) {
     QRectF board_rect = QRectF(x_start, y_start+max_speed_height, board_width, board_height-max_speed_height);
@@ -913,11 +952,13 @@ float interp(float x, std::initializer_list<T> x_list, std::initializer_list<T> 
   return yL + dydx * ( x - xL );
 }
 
-void NvgWindow::drawThermal(QPainter &p) {
+void NvgWindow::drawDeviceState(QPainter &p) {
   p.save();
 
   const SubMaster &sm = *(uiState()->sm);
   auto deviceState = sm["deviceState"].getDeviceState();
+
+  const auto freeSpacePercent = deviceState.getFreeSpacePercent();
 
   const auto cpuTempC = deviceState.getCpuTempC();
   //const auto gpuTempC = deviceState.getGpuTempC();
@@ -943,17 +984,32 @@ void NvgWindow::drawThermal(QPainter &p) {
 
   int w = 192;
   int x = width() - (30 + w);
-  int y = 450;
+  int y = 340;
 
   QString str;
   QRect rect;
 
   configFont(p, "Inter", 50, "Bold");
-  str.sprintf("%.0f°C", cpuTemp);
+  str.sprintf("%.0f%%", freeSpacePercent);
   rect = QRect(x, y, w, w);
 
-  int r = interp<float>(cpuTemp, {50.f, 90.f}, {200.f, 255.f}, false);
-  int g = interp<float>(cpuTemp, {50.f, 90.f}, {255.f, 200.f}, false);
+  int r = interp<float>(freeSpacePercent, {10.f, 90.f}, {255.f, 200.f}, false);
+  int g = interp<float>(freeSpacePercent, {10.f, 90.f}, {200.f, 255.f}, false);
+  p.setPen(QColor(r, g, 200, 200));
+  p.drawText(rect, Qt::AlignCenter, str);
+
+  y += 55;
+  configFont(p, "Inter", 25, "Bold");
+  rect = QRect(x, y, w, w);
+  p.setPen(QColor(255, 255, 255, 200));
+  p.drawText(rect, Qt::AlignCenter, "STORAGE");
+
+  y += 80;
+  configFont(p, "Inter", 50, "Bold");
+  str.sprintf("%.0f°C", cpuTemp);
+  rect = QRect(x, y, w, w);
+  r = interp<float>(cpuTemp, {50.f, 90.f}, {200.f, 255.f}, false);
+  g = interp<float>(cpuTemp, {50.f, 90.f}, {255.f, 200.f}, false);
   p.setPen(QColor(r, g, 200, 200));
   p.drawText(rect, Qt::AlignCenter, str);
 
@@ -1025,17 +1081,17 @@ void NvgWindow::drawRestAreaItem(QPainter &p, int yPos, capnp::Text::Reader imag
   p.save();
 
   int mx = 20;
-  int my = 5;
+  int my = 10;
 
-  int box_width = Hardware::TICI() ? 580 : 510;
+  int box_width = Hardware::TICI() ? 590 : 520;
   int box_height = 200;
 
   int icon_size = 70;
 
-  //QRect rc(30, 30, 184, 202); // MAX box
-  QRect rc(184+30+30, 30 + yPos, box_width, box_height);
+  //QRect rc(30, 30, 210, 202); // MAX box
+  QRect rc(204+60, 30 + yPos, box_width, box_height);
   p.setBrush(QColor(0, 0, 0, 100));
-  p.drawRoundedRect(rc, 5, 5);
+  p.drawRoundedRect(rc, 20, 20);
 
   if(lastItem)
     p.setPen(QColor(255, 255, 255, 200));
@@ -1046,20 +1102,20 @@ void NvgWindow::drawRestAreaItem(QPainter &p, int yPos, capnp::Text::Reader imag
   int y = rc.top() + my;
 
   configFont(p, "Inter", 60, "Bold");
-  p.drawText(x, y+60+5, title.cStr());
+  p.drawText(x, y+60+10, title.cStr());
 
   QPixmap icon = get_icon_iol_com(image.cStr());
-  p.drawPixmap(x, y + box_height/2 + 5, icon_size, icon_size, icon);
+  p.drawPixmap(x, y + box_height/2, icon_size, icon_size, icon);
 
   configFont(p, "Inter", 50, "Bold");
-  p.drawText(x + icon_size + 15, y + box_height/2 + 50 + 5, oilPrice.cStr());
+  p.drawText(x + icon_size + 15, y + box_height/2 + 50, oilPrice.cStr());
 
   configFont(p, "Inter", 60, "Bold");
 
   QFontMetrics fm(p.font());
   QRect rect = fm.boundingRect(distance.cStr());
 
-  p.drawText(rc.left()+rc.width()-rect.width()-mx-5, y + box_height/2 + 60, distance.cStr());
+  p.drawText(rc.left()+rc.width()-rect.width()-mx-5, y + box_height/2 + 55, distance.cStr());
 
   p.restore();
 }

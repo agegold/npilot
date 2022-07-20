@@ -13,6 +13,7 @@
 #endif
 
 #include "common/params.h"
+#include "common/watchdog.h"
 #include "common/util.h"
 #include "system/hardware/hw.h"
 #include "selfdrive/ui/qt/widgets/controls.h"
@@ -65,7 +66,7 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
     },
     {
       "EndToEndToggle",
-      tr("\U0001f96c Disable use of lanelines \U0001f96c"),
+      tr("Disable use of lanelines"),
       tr("In this mode openpilot will ignore lanelines and just drive how it thinks a human would."),
       "../assets/offroad/icon_road.png",
     },
@@ -81,6 +82,12 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
       tr("Show ETA in 24h format"),
       tr("Use 24h format instead of am/pm"),
       "../assets/offroad/icon_metric.png",
+    },
+    {
+      "NavSettingLeftSide",
+      tr("Show Map on Left Side of UI"),
+      tr("Show map on left side when in split screen view."),
+      "../assets/offroad/icon_road.png",
     },
 #endif
 
@@ -144,11 +151,11 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
   // offroad-only buttons
 
   auto dcamBtn = new ButtonControl(tr("Driver Camera"), tr("PREVIEW"),
-                                   tr("Preview the driver facing camera to help optimize device mounting position for best driver monitoring experience. (vehicle must be off)"));
+                                   tr("Preview the driver facing camera to ensure that driver monitoring has good visibility. (vehicle must be off)"));
   connect(dcamBtn, &ButtonControl::clicked, [=]() { emit showDriverView(); });
   addItem(dcamBtn);
 
-  auto resetCalibBtn = new ButtonControl(tr("Reset Calibration"), tr("RESET"), " ");
+  auto resetCalibBtn = new ButtonControl(tr("Reset Calibration"), tr("RESET"), "");
   connect(resetCalibBtn, &ButtonControl::showDescription, this, &DevicePanel::updateCalibDescription);
   connect(resetCalibBtn, &ButtonControl::clicked, [&]() {
     if (ConfirmationDialog::confirm(tr("Are you sure you want to reset calibration?"), this)) {
@@ -175,6 +182,20 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
     });
     addItem(regulatoryBtn);
   }
+
+  auto translateBtn = new ButtonControl(tr("Change Language"), tr("CHANGE"), "");
+  connect(translateBtn, &ButtonControl::clicked, [=]() {
+    QMap<QString, QString> langs = getSupportedLanguages();
+    QString currentLang = QString::fromStdString(Params().get("LanguageSetting"));
+    QString selection = MultiOptionDialog::getSelection(tr("Select a language"), langs.keys(), langs.key(currentLang), this);
+    if (!selection.isEmpty()) {
+      // put language setting, exit Qt UI, and trigger fast restart
+      Params().put("LanguageSetting", langs[selection].toStdString());
+      qApp->exit(18);
+      watchdog_kick(0);
+    }
+  });
+  addItem(translateBtn);
 
   /*QObject::connect(uiState(), &UIState::offroadTransition, [=](bool offroad) {
     for (auto btn : findChildren<ButtonControl *>()) {
@@ -296,7 +317,7 @@ SoftwarePanel::SoftwarePanel(QWidget* parent) : ListWidget(parent) {
   });
 
 
-  auto uninstallBtn = new ButtonControl(tr("Uninstall ") + getBrand(), tr("UNINSTALL"));
+  auto uninstallBtn = new ButtonControl(tr("Uninstall %1").arg(getBrand()), tr("UNINSTALL"));
   connect(uninstallBtn, &ButtonControl::clicked, [&]() {
     if (ConfirmationDialog::confirm(tr("Are you sure you want to uninstall?"), this)) {
       params.putBool("DoUninstall", true);
@@ -339,10 +360,6 @@ void SoftwarePanel::updateLabels() {
   gitBranchLbl->setText(QString::fromStdString(params.get("GitBranch")));
   gitCommitLbl->setText(QString::fromStdString(params.get("GitCommit")).left(10));
   osVersionLbl->setText(QString::fromStdString(Hardware::get_os_version()).trimmed());
-}
-
-QWidget *network_panel(QWidget *parent) {
-  return new Networking(parent);
 }
 
 static QStringList get_list(const char* path)
@@ -413,7 +430,7 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
 
   QList<QPair<QString, QWidget *>> panels = {
     {tr("Device"), device},
-    {tr("Network"), network_panel(this)},
+    {tr("Network"), new Networking(this)},
     {tr("Toggles"), new TogglesPanel(this)},
     {tr("Software"), new SoftwarePanel(this)},
     {tr("Community"), new CommunityPanel(this)},
@@ -577,7 +594,7 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
 
   QList<ParamControl*> toggles;
 
-  toggles.append(new ParamControl(tr("UseClusterSpeed"),
+  toggles.append(new ParamControl("UseClusterSpeed",
                                             tr("Use Cluster Speed"),
                                             tr("Use cluster speed instead of wheel speed."),
                                             "../assets/offroad/icon_road.png",
@@ -585,12 +602,12 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
 
   toggles.append(new ParamControl("LongControlEnabled",
                                             tr("Enable HKG Long Control"),
-                                            tr("warnings: it is beta, be careful!! Openpilot will control the speed of your car"),
+                                            tr("Openpilot will control the speed of your car"),
                                             "../assets/offroad/icon_road.png",
                                             this));
 
   toggles.append(new ParamControl("IsLdwsCar",
-                                            tr("LDWS"),
+                                            tr("LDWS only"),
                                             tr("If your car only supports LDWS, turn it on."),
                                             "../assets/offroad/icon_openpilot.png",
                                             this));
@@ -603,12 +620,12 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
 
   toggles.append(new ParamControl("AutoLaneChangeEnabled",
                                             tr("Enable Auto Lane Change(Nudgeless)"),
-                                            tr("warnings: it is beta, be careful!!"),
+                                            tr("Automatically changes lanes at turn signal."),
                                             "../assets/offroad/icon_road.png",
                                             this));
 
   toggles.append(new ParamControl("SccSmootherSlowOnCurves",
-                                            tr("Enable Slow On Curves"),
+                                            tr("Enable slow on curves"),
                                             "",
                                             "../assets/offroad/icon_road.png",
                                             this));
@@ -654,12 +671,6 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
                                             "../assets/offroad/icon_shell.png",
                                             this));
 
-  /*toggles.append(new ParamControl("CustomLeadMark",
-                                            tr("Use custom lead mark"),
-                                            "",
-                                            "../assets/offroad/icon_road.png",
-                                            this));*/
-
   for(ParamControl *toggle : toggles) {
     if(main_layout->count() != 0) {
       toggleLayout->addWidget(horizontal_line());
@@ -675,7 +686,7 @@ SelectCar::SelectCar(QWidget* parent): QWidget(parent) {
   main_layout->setSpacing(20);
 
   // Back button
-  QPushButton* back = new QPushButton("Back");
+  QPushButton* back = new QPushButton(tr("Back"));
   back->setObjectName("back_btn");
   back->setFixedSize(500, 100);
   connect(back, &QPushButton::clicked, [=]() { emit backPress(); });
@@ -687,7 +698,7 @@ SelectCar::SelectCar(QWidget* parent): QWidget(parent) {
   QScroller::grabGesture(list->viewport(), QScroller::LeftMouseButtonGesture);
   list->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
 
-  list->addItem("[ Not selected ]");
+  list->addItem(tr("[ Not selected ]"));
 
   QStringList items = get_list("/data/params/d/SupportedCars");
   list->addItems(items);
@@ -725,7 +736,7 @@ LateralControl::LateralControl(QWidget* parent): QWidget(parent) {
   main_layout->setSpacing(20);
 
   // Back button
-  QPushButton* back = new QPushButton("Back");
+  QPushButton* back = new QPushButton(tr("Back"));
   back->setObjectName("back_btn");
   back->setFixedSize(500, 100);
   connect(back, &QPushButton::clicked, [=]() { emit backPress(); });
@@ -737,7 +748,7 @@ LateralControl::LateralControl(QWidget* parent): QWidget(parent) {
   QScroller::grabGesture(list->viewport(), QScroller::LeftMouseButtonGesture);
   list->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
 
-  QStringList items = {"TORQUE", "LQR", "INDI"};
+  QStringList items = {"TORQUE", "INDI"};
   list->addItems(items);
   list->setCurrentRow(0);
 

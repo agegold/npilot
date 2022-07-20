@@ -195,8 +195,9 @@ static void update_state(UIState *s) {
 }
 
 void ui_update_params(UIState *s) {
-  Params params;
+  auto params = Params();
   s->scene.is_metric = params.getBool("IsMetric");
+  s->scene.map_on_left = params.getBool("NavSettingLeftSide");
   s->show_debug = params.getBool("ShowDebugUI");
   s->lat_control = std::string(Params().get("LateralControl"));
 }
@@ -234,7 +235,7 @@ UIState::UIState(QObject *parent) : QObject(parent) {
   sm = std::make_unique<SubMaster, const std::initializer_list<const char *>>({
     "modelV2", "controlsState", "liveCalibration", "radarState", "deviceState", "roadCameraState",
     "pandaStates", "carParams", "sensorEvents", "carState", "liveLocationKalman",
-    "wideRoadCameraState", "managerState", "navInstruction", "navRoute",
+    "wideRoadCameraState", "managerState", "navInstruction", "navRoute", "gnssMeasurements",
     "gpsLocationExternal", "carControl", "liveParameters", "roadLimitSpeed",
   });
 
@@ -254,7 +255,7 @@ void UIState::update() {
   updateStatus();
 
   if (sm->frame % UI_FREQ == 0) {
-    watchdog_kick();
+    watchdog_kick(nanos_since_boot());
   }
   emit uiUpdate(*this);
 }

@@ -111,7 +111,7 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     lkasDisabled @107;
     canBusMissing @111;
     controlsdLagging @112;
-    
+
     turningIndicatorOn @113;
     autoLaneChange @114;
     slowingDownSpeed @115;
@@ -646,6 +646,7 @@ struct CarParams {
     subAddress @3 :UInt8;
     responseAddress @4 :UInt32;
     request @5 :List(Data);
+    brand @6 :Text;
   }
 
   enum Ecu {

@@ -196,7 +196,7 @@ class CarController:
 
   def update_auto_resume(self, CC, CS, clu11_speed, can_sends):
     # fix auto resume - by neokii
-    if CS.out.cruiseState.standstill and not CS.out.gasPressed:
+    if CC.cruiseControl.resume and not CS.out.gasPressed:
       if self.last_lead_distance == 0:
         self.last_lead_distance = CS.lead_distance
         self.resume_cnt = 0
@@ -310,16 +310,19 @@ class CarController:
     # steering control
     can_sends.append(hda2can.create_lkas(self.packer, CC.enabled, self.frame, CC.latActive, apply_steer))
 
+    if self.frame % 5 == 0:
+      can_sends.append(hda2can.create_cam_0x2a4(self.packer, self.frame, CS.cam_0x2a4))
+
     # cruise cancel
     if (self.frame - self.last_button_frame) * DT_CTRL > 0.25:
       if CC.cruiseControl.cancel:
         for _ in range(20):
-          can_sends.append(hda2can.create_buttons(self.packer, CS.buttons_counter + 1, True, False))
+          can_sends.append(hda2can.create_buttons(self.packer, CS.buttons_counter+1, Buttons.CANCEL))
         self.last_button_frame = self.frame
 
       # cruise standstill resume
-      elif CC.enabled and CS.out.cruiseState.standstill:
-        can_sends.append(hda2can.create_buttons(self.packer, CS.buttons_counter + 1, False, True))
+      elif CC.cruiseControl.resume:
+        can_sends.append(hda2can.create_buttons(self.packer, CS.buttons_counter+1, Buttons.RES_ACCEL))
         self.last_button_frame = self.frame
 
     new_actuators = actuators.copy()
