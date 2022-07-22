@@ -52,6 +52,7 @@ class CAR:
   GRANDEUR_IG_FL = "HYUNDAI GRANDEUR IG FL 2020"
   GRANDEUR_IG_FL_HEV = "HYUNDAI GRANDEUR IG FL HEV 2020"
   TUCSON_TL_SCC  = "HYUNDAI TUCSON TL SCC 2017"
+  MAXCRUZE = "HYUNDAI MAXCRUZE"
   # kia
   FORTE = "KIA FORTE E 2018"
   K5 = "KIA K5 2019 & 2016"
@@ -405,6 +406,8 @@ DBC = {
   CAR.GRANDEUR_IG_FL: dbc_dict('hyundai_kia_generic', None),
   CAR.GRANDEUR_IG_FL_HEV: dbc_dict('hyundai_kia_generic', None),
   CAR.TUCSON_TL_SCC: dbc_dict('hyundai_kia_generic', None),
+  CAR.MAXCRUZE: dbc_dict('hyundai_kia_generic', None),
+
   # kia
   CAR.FORTE: dbc_dict('hyundai_kia_generic', None),
   CAR.K5: dbc_dict('hyundai_kia_generic', None),
