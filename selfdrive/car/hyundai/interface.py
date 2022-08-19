@@ -4,7 +4,7 @@ from typing import List
 from cereal import car
 from common.numpy_fast import interp
 from common.conversions import Conversions as CV
-from selfdrive.car.hyundai.values import CAR, Buttons, CarControllerParams, HDA2_CAR
+from selfdrive.car.hyundai.values import CAR, Buttons, CarControllerParams, CANFD_CAR
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint, get_safety_config
 from selfdrive.car.interfaces import CarInterfaceBase
 from common.params import Params
@@ -45,7 +45,12 @@ class CarInterface(CarInterfaceBase):
     ret.openpilotLongitudinalControl = Params().get_bool('LongControlEnabled')
 
     ret.carName = "hyundai"
-    ret.safetyConfigs = [get_safety_config(car.CarParams.SafetyModel.hyundaiCommunity, 0)]
+
+    if candidate in CANFD_CAR:
+      ret.safetyConfigs = [get_safety_config(car.CarParams.SafetyModel.noOutput),
+                           get_safety_config(car.CarParams.SafetyModel.hyundaiCanfd)]
+    else:
+      ret.safetyConfigs = [get_safety_config(car.CarParams.SafetyModel.hyundaiCommunity, 0)]
 
     tire_stiffness_factor = 1.
     ret.maxSteeringAngleDeg = 1000.
@@ -82,7 +87,7 @@ class CarInterface(CarInterfaceBase):
     ret.longitudinalActuatorDelayLowerBound = 0.3
     ret.longitudinalActuatorDelayUpperBound = 0.3
 
-    ret.stopAccel = -2.0
+    ret.stopAccel = -2.5
     ret.stoppingDecelRate = 0.4  # brake_travel/s while trying to stop
     ret.vEgoStopping = 0.5
     ret.vEgoStarting = 0.5
@@ -92,6 +97,7 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 1900. + STD_CARGO_KG
       ret.wheelbase = 3.01
       ret.centerToFront = ret.wheelbase * 0.4
+      ret.maxSteeringAngleDeg = 90.
     elif candidate == CAR.GENESIS_G70:
       ret.mass = 1640. + STD_CARGO_KG
       ret.wheelbase = 2.84
@@ -178,10 +184,16 @@ class CarInterface(CarInterfaceBase):
       tire_stiffness_factor = 0.7
       ret.centerToFront = ret.wheelbase * 0.4
     elif candidate in [CAR.KONA_HEV, CAR.KONA_EV]:
-      ret.mass = 1395. + STD_CARGO_KG
+      ret.mass = 1427. + STD_CARGO_KG
       ret.wheelbase = 2.6
       tire_stiffness_factor = 0.7
+      ret.steerRatio = 13.27
       ret.centerToFront = ret.wheelbase * 0.4
+
+      if ret.lateralTuning.which() == 'torque':
+        # selfdrive/car/torque_data/params.yaml, https://codebeautify.org/jsonviewer/y220b1623
+        torque_tune(ret.lateralTuning, 4.493208192966529, 0.0863709736632968)
+
     elif candidate in [CAR.IONIQ, CAR.IONIQ_EV_LTD, CAR.IONIQ_EV_2020, CAR.IONIQ_PHEV]:
       ret.mass = 1490. + STD_CARGO_KG
       ret.wheelbase = 2.7
@@ -283,19 +295,24 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 2055 + STD_CARGO_KG
       ret.wheelbase = 2.9
       ret.steerRatio = 16.
-      ret.safetyConfigs = [get_safety_config(car.CarParams.SafetyModel.noOutput),
-                           get_safety_config(car.CarParams.SafetyModel.hyundaiHDA2)]
       tire_stiffness_factor = 0.65
 
       if ret.lateralTuning.which() == 'torque':
         torque_tune(ret.lateralTuning, 3.5, 0.01)
 
+    elif candidate == CAR.IONIQ_5:
+      ret.mass = 2012 + STD_CARGO_KG
+      ret.wheelbase = 3.0
+      ret.steerRatio = 16.
+      tire_stiffness_factor = 0.65
+
+      if ret.lateralTuning.which() == 'torque':
+        torque_tune(ret.lateralTuning, 3.5, 0.01)
 
     ret.radarTimeStep = 0.05
 
     if ret.centerToFront == 0:
       ret.centerToFront = ret.wheelbase * 0.4
-
 
     # TODO: get actual value, for now starting with reasonable value for
     # civic and scaling by mass and wheelbase
@@ -312,7 +329,7 @@ class CarInterface(CarInterfaceBase):
 
     ret.stoppingControl = True
 
-    if candidate in HDA2_CAR:
+    if candidate in CANFD_CAR:
       ret.enableBsm = 0x58b in fingerprint[0]
       ret.radarOffCan = False
     else:
