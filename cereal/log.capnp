@@ -37,6 +37,8 @@ struct InitData {
   passive @12 :Bool;
   params @17 :Map(Text, Data);
 
+  commands @19 :Map(Text, Data);
+
   enum DeviceType {
     unknown @0;
     neo @1;
@@ -411,6 +413,7 @@ struct PandaState @0xa7649e2575e4591e {
   heartbeatLost @22 :Bool;
   blockedCnt @24 :UInt32;
   interruptLoad @25 :Float32;
+  fanPower @28 :UInt8;
 
   enum FaultStatus {
     none @0;
@@ -1886,6 +1889,9 @@ struct EncodeData {
   unixTimestampNanos @3 :UInt64;
 }
 
+struct UserFlag {
+}
+
 struct RoadLimitSpeed {
     active @0 :Int16;
     roadLimitSpeed @1 :Int16;
@@ -1973,8 +1979,11 @@ struct Event {
     navRoute @83 :NavRoute;
     navThumbnail @84: Thumbnail;
     
+    # user flags
+    userFlag @93 :UserFlag;
+    
     # neokii
-    roadLimitSpeed @93 :RoadLimitSpeed;
+    roadLimitSpeed @94 :RoadLimitSpeed;
 
     # *********** debug ***********
     testJoystick @52 :Joystick;
