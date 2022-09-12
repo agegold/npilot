@@ -10,7 +10,7 @@ from common.conversions import Conversions as CV
 from selfdrive.car.hyundai.values import Buttons
 from common.params import Params
 from selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX, V_CRUISE_MIN, V_CRUISE_DELTA_KM, V_CRUISE_DELTA_MI, CONTROL_N
-from selfdrive.controls.lib.lane_planner import TRAJECTORY_SIZE
+from selfdrive.controls.lib.lateral_planner import TRAJECTORY_SIZE
 from selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import AUTO_TR_CRUISE_GAP
 
 from selfdrive.ntune import ntune_scc_get
@@ -63,10 +63,10 @@ class SccSmoother:
 
   def __init__(self):
 
-    self.longcontrol = Params().get_bool('LongControlEnabled')
-    self.slow_on_curves = Params().get_bool('SccSmootherSlowOnCurves')
-    self.sync_set_speed_while_gas_pressed = Params().get_bool('SccSmootherSyncGasPressed')
-    self.is_metric = Params().get_bool('IsMetric')
+    self.params = Params()
+    self.read_param()
+
+    self.param_read_counter = 0
 
     self.speed_conv_to_ms = CV.KPH_TO_MS if self.is_metric else CV.MPH_TO_MS
     self.speed_conv_to_clu = CV.MS_TO_KPH if self.is_metric else CV.MS_TO_MPH
@@ -95,6 +95,13 @@ class SccSmoother:
 
     self.curve_speed_ms = 0.
     self.stock_weight = 0.
+
+  def read_param(self):
+    self.longcontrol = self.params.get_bool('LongControlEnabled')
+    self.slow_on_curves = self.params.get_bool('SccSmootherSlowOnCurves')
+    self.sync_set_speed_while_gas_pressed = self.params.get_bool('SccSmootherSyncGasPressed')
+    self.is_metric = self.params.get_bool('IsMetric')
+    self.e2e_long = self.params.get_bool('EndToEndLong')
 
   def reset(self):
 
@@ -198,6 +205,10 @@ class SccSmoother:
     return road_limit_speed, left_dist, max_speed_log
 
   def update(self, enabled, can_sends, packer, CC, CS, frame, controls):
+
+    if self.param_read_counter % 100 == 0:
+      self.read_param()
+    self.param_read_counter += 1
 
     # mph or kph
     clu11_speed = CS.clu11["CF_Clu_Vanz"]
@@ -354,15 +365,11 @@ class SccSmoother:
     gas_factor = ntune_scc_get("sccGasFactor")
     brake_factor = ntune_scc_get("sccBrakeFactor")
 
-    #lead = self.get_lead(sm)
-    #if lead is not None:
-    #  if not lead.radar:
-    #    brake_factor *= 0.975
+    boost_v = 0.2 if self.e2e_long else 0.5
 
-    start_boost = interp(CS.out.vEgo, [0.0, CREEP_SPEED, 2 * CREEP_SPEED], [0.6, 0.6, 0.0])
+    start_boost = interp(CS.out.vEgo, [CREEP_SPEED, 2 * CREEP_SPEED], [boost_v, 0.0])
     is_accelerating = interp(accel, [0.0, 0.2], [0.0, 1.0])
     boost = start_boost * is_accelerating
-
     accel += boost
 
     if accel > 0:
