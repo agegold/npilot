@@ -111,7 +111,7 @@ static void update_model(UIState *s, const cereal::ModelDataV2::Reader &model) {
     max_distance = std::clamp((float)(lead_d - fmin(lead_d * 0.35, 10.)), 0.0f, max_distance);
   }
   max_idx = get_path_length_idx(model_position, max_distance);
-  update_line_data(s, model_position, scene.end_to_end ? 0.9 : 0.5, 1.22, &scene.track_vertices, max_idx, false);
+  update_line_data(s, model_position, 0.9, 1.22, &scene.track_vertices, max_idx, false);
 }
 
 static void update_sockets(UIState *s) {
@@ -237,12 +237,13 @@ UIState::UIState(QObject *parent) : QObject(parent) {
     "modelV2", "controlsState", "liveCalibration", "radarState", "deviceState", "roadCameraState",
     "pandaStates", "carParams", "sensorEvents", "carState", "liveLocationKalman",
     "wideRoadCameraState", "managerState", "navInstruction", "navRoute", "gnssMeasurements",
-    "gpsLocationExternal", "carControl", "liveParameters", "roadLimitSpeed",
+    "gpsLocationExternal", "carControl", "liveParameters", "liveTorqueParameters", "roadLimitSpeed",
   });
 
   Params params;
   wide_camera = params.getBool("WideCameraOnly");
   prime_type = std::atoi(params.get("PrimeType").c_str());
+  language = QString::fromStdString(params.get("LanguageSetting"));
 
   // update timer
   timer = new QTimer(this);
