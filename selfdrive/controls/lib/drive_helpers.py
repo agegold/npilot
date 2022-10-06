@@ -23,7 +23,7 @@ CONTROL_N = 17
 CAR_ROTATION_RADIUS = 0.0
 
 # EU guidelines
-MAX_LATERAL_JERK = 10.0
+MAX_LATERAL_JERK = 20.0
 
 ButtonType = car.CarState.ButtonEvent.Type
 CRUISE_LONG_PRESS = 50
@@ -128,10 +128,10 @@ def get_lag_adjusted_curvature(CP, v_ego, psis, curvatures, curvature_rates):
   desired_curvature_rate = curvature_rates[0]
   max_curvature_rate = MAX_LATERAL_JERK / (v_ego**2) # inexact calculation, check https://github.com/commaai/openpilot/pull/24755
   safe_desired_curvature_rate = clip(desired_curvature_rate,
-                                          -max_curvature_rate,
-                                          max_curvature_rate)
+                                     -max_curvature_rate,
+                                     max_curvature_rate)
   safe_desired_curvature = clip(desired_curvature,
-                                     current_curvature_desired - max_curvature_rate * DT_MDL,
-                                     current_curvature_desired + max_curvature_rate * DT_MDL)
+                                current_curvature_desired - max_curvature_rate * DT_MDL,
+                                current_curvature_desired + max_curvature_rate * DT_MDL)
 
   return safe_desired_curvature, safe_desired_curvature_rate
