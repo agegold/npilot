@@ -25,7 +25,7 @@ class TestCarInterfaces(unittest.TestCase):
 
     car_fw = []
 
-    car_params = CarInterface.get_params(car_name, fingerprints, car_fw)
+    car_params = CarInterface.get_params(car_name, fingerprints, car_fw, experimental_long=False)
     car_interface = CarInterface(car_params, CarController, CarState)
     assert car_params
     assert car_interface
@@ -76,7 +76,7 @@ class TestCarInterfaces(unittest.TestCase):
 
     # Run radar interface once
     radar_interface.update([])
-    if not car_params.radarOffCan and radar_interface.rcp is not None and \
+    if not car_params.radarUnavailable and radar_interface.rcp is not None and \
        hasattr(radar_interface, '_update') and hasattr(radar_interface, 'trigger_msg'):
       radar_interface._update([radar_interface.trigger_msg])
 
