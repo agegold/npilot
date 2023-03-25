@@ -325,8 +325,10 @@ AnnotatedCameraWidget::AnnotatedCameraWidget(VisionStreamType type, QWidget* par
   main_layout->setMargin(bdr_s);
   main_layout->setSpacing(0);
 
-  experimental_btn = new ExperimentalButton(this);
-  main_layout->addWidget(experimental_btn, 0, Qt::AlignTop | Qt::AlignRight);
+  //experimental_btn = new ExperimentalButton(this);
+  //main_layout->addWidget(experimental_btn, 0, Qt::AlignTop | Qt::AlignRight);
+
+  dm_img = loadPixmap("../assets/img_driver_face.png", {img_size + 5, img_size + 5});
 
   // neokii
   ic_brake = QPixmap("../assets/images/img_brake_disc.png").scaled(img_size, img_size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
@@ -352,7 +354,19 @@ void AnnotatedCameraWidget::initializeGL() {
 }
 
 void AnnotatedCameraWidget::updateState(const UIState &s) {
-  experimental_btn->updateState(s);
+  const SubMaster &sm = *(s.sm);
+
+  //experimental_btn->updateState(s);
+
+  const auto cs = sm["controlsState"].getControlsState();
+
+  // update DM icons at 2Hz
+  if (sm.frame % (UI_FREQ / 2) == 0) {
+    dmActive = sm["driverMonitoringState"].getDriverMonitoringState().getIsActiveMode();
+  }
+
+  hideDM = (cs.getAlertSize() != cereal::ControlsState::AlertSize::NONE);
+  dm_fade_state = fmax(0.0, fmin(1.0, dm_fade_state+0.2*(0.5-(float)(dmActive))));
 }
 
 void AnnotatedCameraWidget::updateFrameMat() {
@@ -486,16 +500,18 @@ void AnnotatedCameraWidget::paintEvent(QPaintEvent *event) {
     }
 
     // Wide or narrow cam dependent on speed
-    float v_ego = sm["carState"].getCarState().getVEgo();
-    if ((v_ego < 10) || s->wide_cam_only) {
-      wide_cam_requested = true;
-    } else if (v_ego > 15) {
-      wide_cam_requested = false;
+    bool has_wide_cam = available_streams.count(VISION_STREAM_WIDE_ROAD);
+    if (has_wide_cam) {
+      float v_ego = sm["carState"].getCarState().getVEgo();
+      if ((v_ego < 10) || available_streams.size() == 1) {
+        wide_cam_requested = true;
+      } else if (v_ego > 15) {
+        wide_cam_requested = false;
+      }
+      wide_cam_requested = wide_cam_requested && sm["controlsState"].getControlsState().getExperimentalMode();
+      // for replay of old routes, never go to widecam
+      wide_cam_requested = wide_cam_requested && s->scene.calibration_wide_valid;
     }
-    wide_cam_requested = wide_cam_requested && sm["controlsState"].getControlsState().getExperimentalMode();
-    // TODO: also detect when ecam vision stream isn't available
-    // for replay of old routes, never go to widecam
-    wide_cam_requested = wide_cam_requested && s->scene.calibration_wide_valid;
     CameraWidget::setStreamType(wide_cam_requested ? VISION_STREAM_WIDE_ROAD : VISION_STREAM_ROAD);
 
     s->scene.wide_cam = CameraWidget::getStreamType() == VISION_STREAM_WIDE_ROAD;
@@ -515,12 +531,18 @@ void AnnotatedCameraWidget::paintEvent(QPaintEvent *event) {
 
   if (s->worldObjectsVisible()) {
     if (sm.rcv_frame("modelV2") > s->scene.started_frame) {
-      update_model(s, sm["modelV2"].getModelV2());
+      update_model(s, sm["modelV2"].getModelV2(), sm["uiPlan"].getUiPlan());
       if (sm.rcv_frame("radarState") > s->scene.started_frame) {
         update_leads(s, radar_state, sm["modelV2"].getModelV2().getPosition());
       }
     }
     drawHud(p, model);
+
+    // DMoji
+    if (!hideDM && (sm.rcv_frame("driverStateV2") > s->scene.started_frame)) {
+      update_dmonitoring(s, sm["driverStateV2"].getDriverStateV2(), dm_fade_state, false);
+      drawDriverState(p, s);
+    }
   }
 
   double cur_draw_t = millis_since_boot();
@@ -715,7 +737,7 @@ void AnnotatedCameraWidget::drawBottomIcons(QPainter &p) {
     drawText2(p, center_x+marginX, center_y+marginY, Qt::AlignLeft, get_tpms_text(rr), get_tpms_color(rr));
   }
 
-  int x = radius / 2 + (bdr_s * 2) + (radius + 50);
+  int x = radius / 2 + (bdr_s * 2) + (radius + 50) * 2;
   const int y = rect().bottom() - footer_h / 2 - 10;
 
   // cruise gap
@@ -750,7 +772,7 @@ void AnnotatedCameraWidget::drawBottomIcons(QPainter &p) {
   drawTextWithColor(p, x, y+50, str, textColor);
 
   // brake
-  x = radius / 2 + (bdr_s * 2) + (radius + 50) * 2;
+  x = radius / 2 + (bdr_s * 2) + (radius + 50) * 3;
   bool brake_valid = car_state.getBrakeLights();
   float img_alpha = brake_valid ? 1.0f : 0.15f;
   float bg_alpha = brake_valid ? 0.3f : 0.1f;
@@ -759,7 +781,7 @@ void AnnotatedCameraWidget::drawBottomIcons(QPainter &p) {
   // auto hold
   int autohold = car_state.getAutoHold();
   if(autohold >= 0) {
-    x = radius / 2 + (bdr_s * 2) + (radius + 50) * 3;
+    x = radius / 2 + (bdr_s * 2) + (radius + 50) * 4;
     img_alpha = autohold > 0 ? 1.0f : 0.15f;
     bg_alpha = autohold > 0 ? 0.3f : 0.1f;
     drawIcon(p, x, y, autohold > 1 ? ic_autohold_warning : ic_autohold_active,
@@ -1404,4 +1426,51 @@ void AnnotatedCameraWidget::drawDebugText(QPainter &p) {
   p.drawText(text_x, y, str);
 
   p.restore();*/
+}
+
+void AnnotatedCameraWidget::drawDriverState(QPainter &painter, const UIState *s) {
+  const UIScene &scene = s->scene;
+
+  painter.save();
+
+  // base icon
+  int x = radius / 2 + (bdr_s * 2) + (radius + 50);
+  int y = rect().bottom() - footer_h / 2 - 10;
+
+  float opacity = dmActive ? 0.65f : 0.15f;
+  drawIcon(painter, x, y, dm_img, blackColor(0), opacity);
+
+  // circle background
+  painter.setOpacity(1.0);
+  painter.setPen(Qt::NoPen);
+  painter.setBrush(blackColor(70));
+  painter.drawEllipse(x - btn_size / 2, y - btn_size / 2, btn_size, btn_size);
+
+  // face
+  QPointF face_kpts_draw[std::size(default_face_kpts_3d)];
+  float kp;
+  for (int i = 0; i < std::size(default_face_kpts_3d); ++i) {
+    kp = (scene.face_kpts_draw[i].v[2] - 8) / 120 + 1.0;
+    face_kpts_draw[i] = QPointF(scene.face_kpts_draw[i].v[0] * kp + x, scene.face_kpts_draw[i].v[1] * kp + y);
+  }
+
+  painter.setPen(QPen(QColor::fromRgbF(1.0, 1.0, 1.0, opacity), 5.2, Qt::SolidLine, Qt::RoundCap));
+  painter.drawPolyline(face_kpts_draw, std::size(default_face_kpts_3d));
+
+  // tracking arcs
+  const int arc_l = 133;
+  const float arc_t_default = 6.7;
+  const float arc_t_extend = 12.0;
+  QColor arc_color = QColor::fromRgbF(0.545 - 0.445 * s->engaged(),
+                                      0.545 + 0.4 * s->engaged(),
+                                      0.545 - 0.285 * s->engaged(),
+                                      0.4 * (1.0 - dm_fade_state));
+  float delta_x = -scene.driver_pose_sins[1] * arc_l / 2;
+  float delta_y = -scene.driver_pose_sins[0] * arc_l / 2;
+  painter.setPen(QPen(arc_color, arc_t_default+arc_t_extend*fmin(1.0, scene.driver_pose_diff[1] * 5.0), Qt::SolidLine, Qt::RoundCap));
+  painter.drawArc(QRectF(std::fmin(x + delta_x, x), y - arc_l / 2, fabs(delta_x), arc_l), (scene.driver_pose_sins[1]>0 ? 90 : -90) * 16, 180 * 16);
+  painter.setPen(QPen(arc_color, arc_t_default+arc_t_extend*fmin(1.0, scene.driver_pose_diff[0] * 5.0), Qt::SolidLine, Qt::RoundCap));
+  painter.drawArc(QRectF(x - arc_l / 2, std::fmin(y + delta_y, y), arc_l, fabs(delta_y)), (scene.driver_pose_sins[0]>0 ? 0 : 180) * 16, 180 * 16);
+
+  painter.restore();
 }

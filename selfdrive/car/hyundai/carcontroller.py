@@ -5,8 +5,8 @@ from common.conversions import Conversions as CV
 from common.numpy_fast import clip, interp
 from common.realtime import DT_CTRL
 from opendbc.can.packer import CANPacker
-from selfdrive.car import apply_std_steer_torque_limits
-from selfdrive.car.hyundai import hyundaicanfd, hyundaican, hyundaiexcan
+from selfdrive.car import apply_driver_steer_torque_limits
+from selfdrive.car.hyundai import hyundaicanfd, hyundaican, hyundaican_community
 from selfdrive.car.hyundai.values import HyundaiFlags, Buttons, CarControllerParams, CANFD_CAR, CAR, \
   LEGACY_SAFETY_MODE_CAR, FEATURES
 from selfdrive.car.interfaces import ACCEL_MAX, ACCEL_MIN
@@ -72,13 +72,13 @@ class CarController:
 
     self.stock_accel_weight = 0
 
-  def update(self, CC, CS):
+  def update(self, CC, CS, now_nanos):
     actuators = CC.actuators
     hud_control = CC.hudControl
 
     # steering torque
     new_steer = int(round(actuators.steer * self.params.STEER_MAX))
-    apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.out.steeringTorque, self.params)
+    apply_steer = apply_driver_steer_torque_limits(new_steer, self.apply_steer_last, CS.out.steeringTorque, self.params)
 
     if not CC.latActive:
       apply_steer = 0
@@ -149,7 +149,7 @@ class CarController:
           can_sends.extend(hyundaicanfd.create_adrv_messages(self.packer, self.frame))
         if self.frame % 2 == 0:
           can_sends.append(hyundaicanfd.create_acc_control(self.packer, self.CP, CC.enabled, self.accel_last, accel, stopping, CC.cruiseControl.override,
-                                                           set_speed_in_units, CS))
+                                                           set_speed_in_units))
           self.accel_last = accel
       else:
         # button presses
@@ -177,7 +177,7 @@ class CarController:
       can_sends.append(hyundaican.create_lkas11(self.packer, self.frame, self.car_fingerprint, apply_steer, lat_active,
                                                 torque_fault, CS.lkas11, sys_warning, sys_state, CC.enabled,
                                                 hud_control.leftLaneVisible, hud_control.rightLaneVisible,
-                                                left_lane_warning, right_lane_warning, self.ldws_opt))
+                                                left_lane_warning, right_lane_warning, self.ldws_opt, self.CP))
 
       if not self.CP.openpilotLongitudinalControl or CruiseStateManager.instance().is_resume_spam_allowed(self.CP):
         if CC.cruiseControl.cancel:
@@ -190,10 +190,11 @@ class CarController:
             if (self.frame - self.last_button_frame) * DT_CTRL > 0.1:
               # send 25 messages at a time to increases the likelihood of resume being accepted
               can_sends.extend([hyundaican.create_clu11(self.packer, CS.clu11, Buttons.RES_ACCEL, self.CP.sccBus)] * 25)
-              self.last_button_frame = self.frame
+              if (self.frame - self.last_button_frame) * DT_CTRL >= 0.15:
+                self.last_button_frame = self.frame
 
       if self.CP.carFingerprint in FEATURES["send_mdps12"]:  # send mdps12 to LKAS to prevent LKAS error
-        can_sends.append(hyundaiexcan.create_mdps12(self.packer, self.frame, CS.mdps12))
+        can_sends.append(hyundaican_community.create_mdps12(self.packer, self.frame, CS.mdps12))
 
       if self.frame % 2 == 0 and self.CP.openpilotLongitudinalControl:
         # TODO: unclear if this is needed
@@ -216,7 +217,7 @@ class CarController:
                                                         hud_control.leadVisible, set_speed_in_units, stopping,
                                                           CC.cruiseControl.override, CS, stock_cam))
         else:
-          can_sends.extend(hyundaiexcan.create_acc_commands(self.packer, CC.enabled, accel, jerk, int(self.frame / 2),
+          can_sends.extend(hyundaican_community.create_acc_commands(self.packer, CC.enabled, accel, jerk, int(self.frame / 2),
                                                           hud_control.leadVisible, set_speed_in_units, stopping,
                                                           CC.cruiseControl.override, CS, stock_cam))
 
@@ -225,14 +226,14 @@ class CarController:
         if self.CP.sccBus == 0:
           can_sends.extend(hyundaican.create_acc_opt(self.packer))
         elif CS.scc13 is not None:
-          can_sends.append(hyundaiexcan.create_acc_opt(self.packer, CS))
+          can_sends.append(hyundaican_community.create_acc_opt(self.packer, CS))
 
       # 2 Hz front radar options
       if self.frame % 50 == 0 and self.CP.openpilotLongitudinalControl and self.CP.sccBus == 0:
         can_sends.append(hyundaican.create_frt_radar_opt(self.packer))
 
       # 20 Hz LFA MFA message
-      if self.frame % 5 == 0 and self.car_fingerprint in FEATURES["send_lfa_mfa"]:
+      if self.frame % 5 == 0 and self.CP.flags & HyundaiFlags.SEND_LFA.value:
         can_sends.append(hyundaican.create_lfahda_mfc(self.packer, CC.enabled, SpeedLimiter.instance().get_active()))
 
     CC.applyAccel = accel

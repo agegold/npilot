@@ -114,6 +114,10 @@ void dos_set_siren(bool enabled){
   set_gpio_output(GPIOC, 12, enabled);
 }
 
+bool dos_read_som_gpio (void){
+  return (get_gpio_input(GPIOC, 2) != 0);
+}
+
 void dos_init(void) {
   common_init_gpio();
 
@@ -136,16 +140,16 @@ void dos_init(void) {
   set_gpio_output(GPIOC, 11, 1);
 
 #ifdef ENABLE_SPI
-  // A4-A7: SPI
-  set_gpio_alternate(GPIOA, 4, GPIO_AF5_SPI1);
-  set_gpio_alternate(GPIOA, 5, GPIO_AF5_SPI1);
-  set_gpio_alternate(GPIOA, 6, GPIO_AF5_SPI1);
-  set_gpio_alternate(GPIOA, 7, GPIO_AF5_SPI1);
-  register_set_bits(&(GPIOA->OSPEEDR), GPIO_OSPEEDER_OSPEEDR4 | GPIO_OSPEEDER_OSPEEDR5 | GPIO_OSPEEDER_OSPEEDR6 | GPIO_OSPEEDER_OSPEEDR7);
+  // SPI init
+  gpio_spi_init();
 #endif
 
   // C8: FAN PWM aka TIM3_CH3
   set_gpio_alternate(GPIOC, 8, GPIO_AF2_TIM3);
+
+  // C2: SOM GPIO used as input (fan control at boot)
+  set_gpio_mode(GPIOC, 2, MODE_INPUT);
+  set_gpio_pullup(GPIOC, 2, PULL_DOWN);
 
   // Initialize IR PWM and set to 0%
   set_gpio_alternate(GPIOB, 7, GPIO_AF2_TIM4);
@@ -211,6 +215,9 @@ const board board_dos = {
   .has_canfd = false,
   .has_rtc_battery = true,
   .fan_max_rpm = 6500U,
+  .adc_scale = 8862U,
+  .fan_stall_recovery = true,
+  .fan_enable_cooldown_time = 0U,
   .init = dos_init,
   .enable_can_transceiver = dos_enable_can_transceiver,
   .enable_can_transceivers = dos_enable_can_transceivers,
@@ -222,5 +229,6 @@ const board board_dos = {
   .set_fan_enabled = dos_set_fan_enabled,
   .set_ir_power = dos_set_ir_power,
   .set_phone_power = unused_set_phone_power,
-  .set_siren = unused_set_siren
+  .set_siren = unused_set_siren,
+  .read_som_gpio = dos_read_som_gpio
 };

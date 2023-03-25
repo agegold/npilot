@@ -14,7 +14,8 @@ V_CRUISE_DELTA_KM = 10
 ButtonType = car.CarState.ButtonEvent.Type
 
 def is_radar_disabler(CP):
-  return CP.carFingerprint in CANFD_CAR or (CP.openpilotLongitudinalControl and CP.sccBus == 0)
+  return (CP.openpilotLongitudinalControl and CP.carFingerprint in CANFD_CAR) or \
+    (CP.openpilotLongitudinalControl and CP.sccBus == 0)
 
 
 class CruiseStateManager:
@@ -53,7 +54,7 @@ class CruiseStateManager:
     self.prev_brake_pressed = False
 
     self.is_metric = Params().get_bool('IsMetric')
-    self.cruise_state_control = Params().get_bool('CruiseStateControl')
+    self.cruise_state_control = False #Params().get_bool('CruiseStateControl')
 
   def is_resume_spam_allowed(self, CP):
     if is_radar_disabler(CP):
@@ -94,12 +95,13 @@ class CruiseStateManager:
     self.prev_brake_pressed = CS.brakePressed
 
     CS.cruiseState.available = self.available
+    CS.cruiseState.gapAdjust = self.gapAdjust
 
     if cruise_state_control:
       CS.cruiseState.enabled = self.enabled
       CS.cruiseState.standstill = False
       CS.cruiseState.speed = self.speed
-      CS.cruiseState.gapAdjust = self.gapAdjust
+      #CS.cruiseState.gapAdjust = self.gapAdjust
 
   def update_buttons(self):
     if self.button_events is None:
