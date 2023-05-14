@@ -408,24 +408,34 @@ void AnnotatedCameraWidget::drawLaneLines(QPainter &painter, const UIState *s) {
   }
 
   // paint path
-  QLinearGradient bg(0, height(), 0, height() / 4);
-  float start_hue, end_hue;
+  QLinearGradient bg(0, height(), 0, 0);
   if (sm["controlsState"].getControlsState().getExperimentalMode()) {
-    const auto &acceleration = sm["modelV2"].getModelV2().getAcceleration();
-    float acceleration_future = 0;
-    if (acceleration.getZ().size() > 16) {
-      acceleration_future = acceleration.getX()[16];  // 2.5 seconds
+    // The first half of track_vertices are the points for the right side of the path
+    // and the indices match the positions of accel from uiPlan
+    const auto &acceleration = sm["uiPlan"].getUiPlan().getAccel();
+    const int max_len = std::min<int>(scene.track_vertices.length() / 2, acceleration.size());
+
+    for (int i = 0; i < max_len; ++i) {
+      // Some points are out of frame
+      if (scene.track_vertices[i].y() < 0 || scene.track_vertices[i].y() > height()) continue;
+
+      // Flip so 0 is bottom of frame
+      float lin_grad_point = (height() - scene.track_vertices[i].y()) / height();
+
+      // speed up: 120, slow down: 0
+      float path_hue = fmax(fmin(60 + acceleration[i] * 35, 120), 0);
+      // FIXME: painter.drawPolygon can be slow if hue is not rounded
+      path_hue = int(path_hue * 100 + 0.5) / 100;
+
+      float saturation = fmin(fabs(acceleration[i] * 1.5), 1);
+      float lightness = util::map_val(saturation, 0.0f, 1.0f, 0.95f, 0.62f);  // lighter when grey
+      float alpha = util::map_val(lin_grad_point, 0.75f / 2.f, 0.75f, 0.4f, 0.0f);  // matches previous alpha fade
+      bg.setColorAt(lin_grad_point, QColor::fromHslF(path_hue / 360., saturation, lightness, alpha));
+
+      // Skip a point, unless next is last
+      i += (i + 2) < max_len ? 1 : 0;
     }
-    start_hue = 60;
-    // speed up: 120, slow down: 0
-    end_hue = fmax(fmin(start_hue + acceleration_future * 45, 148), 0);
 
-    // FIXME: painter.drawPolygon can be slow if hue is not rounded
-    end_hue = int(end_hue * 100 + 0.5) / 100;
-
-    bg.setColorAt(0.0, QColor::fromHslF(start_hue / 360., 0.97, 0.56, 0.4));
-    bg.setColorAt(0.5, QColor::fromHslF(end_hue / 360., 1.0, 0.68, 0.35));
-    bg.setColorAt(1.0, QColor::fromHslF(end_hue / 360., 1.0, 0.68, 0.0));
   } else {
     bg.setColorAt(0.0, QColor::fromHslF(148 / 360., 0.94, 0.51, 0.4));
     bg.setColorAt(0.5, QColor::fromHslF(112 / 360., 1.0, 0.68, 0.35));
@@ -645,6 +655,7 @@ void AnnotatedCameraWidget::drawHud(QPainter &p, const cereal::ModelDataV2::Read
   drawDeviceState(p);
   //drawTurnSignals(p);
   drawGpsStatus(p);
+  drawMisc(p);
   drawDebugText(p);
 
   const auto controls_state = sm["controlsState"].getControlsState();
@@ -1065,6 +1076,16 @@ void AnnotatedCameraWidget::drawMaxSpeed(QPainter &p) {
       text_rect.moveTop(b_rect.top() + 3);
       p.drawText(text_rect, Qt::AlignCenter, str);
     }
+
+    {
+      configFont(p, "Inter", 10, "Bold");
+
+      QRect text_rect = getRect(p, Qt::AlignCenter, str);
+      QRect b_rect(board_rect.x(), board_rect.y(), board_rect.width(), board_rect.height()/2);
+      text_rect.moveCenter({b_rect.center().x(), 0});
+      text_rect.moveTop(b_rect.top() + 20);
+      p.drawText(text_rect, Qt::AlignCenter, str);
+    }
   }
 
   p.restore();
@@ -1475,4 +1496,20 @@ void AnnotatedCameraWidget::drawDriverState(QPainter &painter, const UIState *s)
   painter.drawArc(QRectF(x - arc_l / 2, std::fmin(y + delta_y, y), arc_l, fabs(delta_y)), (scene.driver_pose_sins[0]>0 ? 0 : 180) * 16, 180 * 16);
 
   painter.restore();
+}
+
+void AnnotatedCameraWidget::drawMisc(QPainter &p) {
+  p.save();
+  UIState *s = uiState();
+  const SubMaster &sm = *(s->sm);
+
+  const auto navi_data = sm["naviData"].getNaviData();
+  QString currentRoadName = QString::fromStdString(navi_data.getCurrentRoadName().cStr());
+
+  QColor color = QColor(255, 255, 255, 230);
+
+  configFont(p, "Inter", 70, "Regular");
+  drawText(p, (width()-(bdr_s*2))/4 + bdr_s + 20, 140, currentRoadName, 200);
+
+  p.restore();
 }

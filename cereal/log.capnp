@@ -46,6 +46,7 @@ struct InitData {
     chffrIos @3;
     tici @4;
     pc @5;
+    tizi @6;
   }
 
   struct PandaInfo {
@@ -407,13 +408,16 @@ struct PandaState @0xa7649e2575e4591e {
   powerSaveEnabled @16 :Bool;
   uptime @17 :UInt32;
   faults @18 :List(FaultType);
-  harnessStatus @21 :HarnessStatus;
   heartbeatLost @22 :Bool;
   interruptLoad @25 :Float32;
   fanPower @28 :UInt8;
   fanStallCount @34 :UInt8;
 
   spiChecksumErrorCount @33 :UInt16;
+
+  harnessStatus @21 :HarnessStatus;
+  sbu1Voltage @35 :Float32;
+  sbu2Voltage @36 :Float32;
 
   # can health
   canState0 @29 :PandaCanState;
@@ -2246,4 +2250,5 @@ struct NaviData {
     sectionLeftTime @9 :Int16;
     sectionAdjustSpeed @10 :Bool;
     camSpeedFactor @11 :Float32;
+    currentRoadName @12 :Text;
 }
