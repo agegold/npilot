@@ -358,6 +358,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
   # Car is recognized, but marked as dashcam only
   EventName.startupNoControl: {
     ET.PERMANENT: StartupAlert("블랙박스 모드"),
+    ET.NO_ENTRY: NoEntryAlert("블랙박스 모드"),
   },
 
   # Car is not recognized
@@ -943,6 +944,12 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
   EventName.lkasDisabled: {
     ET.PERMANENT: NormalPermanentAlert("LKAS Disabled: Enable LKAS to engage"),
     ET.NO_ENTRY: NoEntryAlert("LKAS Disabled"),
+  },
+
+  EventName.vehicleSensorsInvalid: {
+    ET.IMMEDIATE_DISABLE: ImmediateDisableAlert("차량 센서 이상"),
+    ET.PERMANENT: NormalPermanentAlert("차량 센서 캘리브레이션중", "캘리브레이션을 위해 주행중"),
+    ET.NO_ENTRY: NoEntryAlert("Vehicle Sensors Calibrating"),
   },
 
   EventName.slowingDownSpeed: {
