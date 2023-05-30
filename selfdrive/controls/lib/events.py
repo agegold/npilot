@@ -720,8 +720,14 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
 
   EventName.calibrationIncomplete: {
     ET.PERMANENT: calibration_incomplete_alert,
-    ET.SOFT_DISABLE: soft_disable_alert("본체의 위치가 변경되었습니다.: 캘리브레이션 재시작중"),
+    ET.SOFT_DISABLE: soft_disable_alert("캘리브레이션 맞지 않습니다."),
     ET.NO_ENTRY: NoEntryAlert("캘리브레이션 진행중입니다"),
+  },
+  
+  EventName.calibrationRecalibrating: {
+    ET.PERMANENT: calibration_incomplete_alert,
+    ET.SOFT_DISABLE: soft_disable_alert("본체의 위치가 변경되었습니다.: 캘리브레이션 재시작중"),
+    ET.NO_ENTRY: NoEntryAlert("본체의 위치가 변경되었습니다.: 캘리브레이션 재시작중"),
   },
 
   EventName.doorOpen: {
