@@ -43,6 +43,7 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     overheat @19;
     calibrationIncomplete @20;
     calibrationInvalid @21;
+    calibrationRecalibrating @117;
     controlsMismatch @22;
     pcmEnable @23;
     pcmDisable @24;
@@ -116,10 +117,10 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     steerTimeLimit @115;
     vehicleSensorsInvalid @116;
 
-    slowingDownSpeed @117;
-    slowingDownSpeedSound @118;
-    cruiseOn @119;
-    cruiseOff @120;
+    slowingDownSpeed @118;
+    slowingDownSpeedSound @119;
+    cruiseOn @120;
+    cruiseOff @121;
 
     radarCanErrorDEPRECATED @15;
     communityFeatureDisallowedDEPRECATED @62;
@@ -170,6 +171,8 @@ struct CarState {
   # gas pedal, 0.0-1.0
   gas @3 :Float32;        # this is user pedal only
   gasPressed @4 :Bool;    # this is user pedal only
+  
+  engineRpm @46 :Float32;
 
   # brake pedal, 0.0-1.0
   brake @5 :Float32;      # this is user pedal only
@@ -219,11 +222,11 @@ struct CarState {
   charging @43 :Bool;
 
   # neokii
-  vCluRatio @46 :Float32;
-  autoHold @47 :Int8;
-  tpms @48 :Tpms;
-  navSpeedLimit @49 :Int16;
-  aReqValue @50 :Float32;
+  vCluRatio @47 :Float32;
+  autoHold @48 :Int8;
+  tpms @49 :Tpms;
+  navSpeedLimit @50 :Int16;
+  aReqValue @51 :Float32;
 
   struct Tpms {
     fl @0 :Float32;
@@ -614,7 +617,7 @@ struct CarParams {
     noOutput @19;  # like silent but without silent CAN TXs
     hondaBosch @20;
     volkswagenPq @21;
-    subaruLegacy @22;  # pre-Global platform
+    subaruPreglobal @22;  # pre-Global platform
     hyundaiLegacy @23;
     hyundaiCommunity @24;
     volkswagenMlb @25;
