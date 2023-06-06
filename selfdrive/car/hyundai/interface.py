@@ -6,7 +6,7 @@ from common.conversions import Conversions as CV
 from selfdrive.car.hyundai.hyundaicanfd import CanBus
 from selfdrive.car.hyundai import interface_community
 from selfdrive.car.hyundai.values import HyundaiFlags, CAR, DBC, CANFD_CAR, CAMERA_SCC_CAR, CANFD_RADAR_SCC_CAR, EV_CAR, \
-  HYBRID_CAR, LEGACY_SAFETY_MODE_CAR, Buttons, CarControllerParams
+  HYBRID_CAR, LEGACY_SAFETY_MODE_CAR, Buttons, CarControllerParams, CANFD_HDA2_CAR
 from selfdrive.car.hyundai.radar_interface import RADAR_START_ADDR
 from selfdrive.car import STD_CARGO_KG, create_button_event, scale_tire_stiffness, get_safety_config
 from selfdrive.car.interfaces import CarInterfaceBase
@@ -44,7 +44,7 @@ class CarInterface(CarInterfaceBase):
     # added to selfdrive/car/tests/routes.py, we can remove it from this list.
     ret.dashcamOnly = candidate in {CAR.KIA_OPTIMA_H, }
 
-    hda2 = Ecu.adas in [fw.ecu for fw in car_fw]
+    hda2 = Ecu.adas in [fw.ecu for fw in car_fw] or candidate in CANFD_HDA2_CAR
     CAN = CanBus(None, hda2, fingerprint)
 
     if candidate in CANFD_CAR:
