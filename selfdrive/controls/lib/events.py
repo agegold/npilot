@@ -242,9 +242,10 @@ def below_steer_speed_alert(CP: car.CarParams, CS: car.CarState, sm: messaging.S
 
 
 def calibration_incomplete_alert(CP: car.CarParams, CS: car.CarState, sm: messaging.SubMaster, metric: bool, soft_disable_time: int) -> Alert:
+  first_word = 'Recalibration' if sm['liveCalibration'].calStatus == log.LiveCalibrationData.Status.recalibrating else 'Calibration'
   return Alert(
-    "캘리브레이션 진행중입니다 : %d%%" % sm['liveCalibration'].calPerc,
-    f"속도를  {get_display_speed(MIN_SPEED_FILTER, metric)} 이상으로 주행 해주세요",
+    f"{first_word} in Progress: {sm['liveCalibration'].calPerc:.0f}%",
+    f"Drive Above {get_display_speed(MIN_SPEED_FILTER, metric)}",
     AlertStatus.normal, AlertSize.mid,
     Priority.LOWEST, VisualAlert.none, AudibleAlert.none, .2)
 
@@ -882,12 +883,6 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
     ET.IMMEDIATE_DISABLE: ImmediateDisableAlert("LKAS 오류 : 차량을 재가동하세요"),
     ET.PERMANENT: NormalPermanentAlert("LKAS 오류 : 차량을 재가동하세요"),
     ET.NO_ENTRY: NoEntryAlert("LKAS 오류 : 차량을 재가동하세요"),
-  },
-
-  EventName.brakeUnavailable: {
-    ET.IMMEDIATE_DISABLE: ImmediateDisableAlert("크루즈 오류 : 차량을 재가동하세요"),
-    ET.PERMANENT: NormalPermanentAlert("크루즈 오류 : 차량을 재가동하세요"),
-    ET.NO_ENTRY: NoEntryAlert("크루즈 오류 : 차량을 재가동하세요"),
   },
 
   EventName.reverseGear: {
