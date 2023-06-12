@@ -57,7 +57,7 @@ def create_steering_messages(packer, CP, CAN, enabled, lat_active, apply_steer):
   if CP.flags & HyundaiFlags.CANFD_HDA2:
     if CP.openpilotLongitudinalControl:
       ret.append(packer.make_can_msg("LFA", CAN.ECAN, values))
-    ret.append(packer.make_can_msg("LKAS", CAN.ACAN, values))
+    ret.append(packer.make_can_msg("LKAS", CAN.CAM, values))
   else:
     ret.append(packer.make_can_msg("LFA", CAN.ECAN, values))
 
@@ -67,7 +67,7 @@ def create_cam_0x2a4(packer, CAN, camera_values):
   camera_values.update({
     "BYTE7": 0,
   })
-  return packer.make_can_msg("CAM_0x2a4", CAN.ACAN, camera_values)
+  return packer.make_can_msg("CAM_0x2a4", CAN.CAM, camera_values)
 
 def create_buttons(packer, CP, CAN, cnt, btn):
   values = {
