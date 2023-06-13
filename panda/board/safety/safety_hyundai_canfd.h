@@ -243,6 +243,8 @@ static int hyundai_canfd_rx_hook(CANPacket_t *to_push) {
   }
   generic_rx_checks(stock_ecu_detected);
 
+  controls_allowed = 1;
+
   return valid;
 }
 
