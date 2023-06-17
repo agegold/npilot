@@ -254,9 +254,7 @@ static int hyundai_canfd_rx_hook(CANPacket_t *to_push) {
 }
 
 static int hyundai_canfd_tx_hook(CANPacket_t *to_send) {
-  UNUSED(to_send);
-  return 1;
-  /*int tx = 0;
+  int tx = 0;
   int addr = GET_ADDR(to_send);
 
   if (hyundai_canfd_hda2 && !hyundai_longitudinal) {
@@ -319,7 +317,7 @@ static int hyundai_canfd_tx_hook(CANPacket_t *to_send) {
     }
   }
 
-  return tx;*/
+  return tx;
 }
 
 static int hyundai_canfd_fwd_hook(int bus_num, int addr) {
