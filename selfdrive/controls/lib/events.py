@@ -193,7 +193,7 @@ class StartupAlert(Alert):
   def __init__(self, alert_text_1: str, alert_text_2: str = "항상 핸들을 잡고 전방주시를 하세요", alert_status=AlertStatus.normal):
     super().__init__(alert_text_1, alert_text_2,
                      alert_status, AlertSize.mid,
-                     Priority.LOWER, VisualAlert.none, AudibleAlert.none, 10.),
+                     Priority.LOWER, VisualAlert.none, AudibleAlert.none, 5.),
 
 
 # ********** helper functions **********

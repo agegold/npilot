@@ -8,10 +8,6 @@
 
 #include "selfdrive/ui/qt/offroad/networking.h"
 
-#ifdef ENABLE_MAPS
-#include "selfdrive/ui/qt/maps/map_settings.h"
-#endif
-
 #include "common/params.h"
 #include "common/watchdog.h"
 #include "common/util.h"
@@ -86,12 +82,12 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
       tr("Use 24h format instead of am/pm"),
       "../assets/offroad/icon_metric.png",
     },
-    /*{
+    {
       "NavSettingLeftSide",
       tr("Show Map on Left Side of UI"),
       tr("Show map on left side when in split screen view."),
       "../assets/offroad/icon_road.png",
-    },*/
+    },
 #endif
   };
 
@@ -149,7 +145,6 @@ void TogglesPanel::updateToggles() {
                                   .arg(tr("New Driving Visualization"))
                                   .arg(tr("The driving visualization will transition to the road-facing wide-angle camera at low speeds to better show some turns. The Experimental mode logo will also be shown in the top right corner."));
 
-  long_personality_setting->setEnabled(false);
   const bool is_release = params.getBool("IsReleaseBranch");
   auto cp_bytes = params.get("CarParamsPersistent");
   if (!cp_bytes.empty()) {
@@ -161,10 +156,7 @@ void TogglesPanel::updateToggles() {
       params.remove("ExperimentalLongitudinalEnabled");
     }
     op_long_toggle->setVisible(CP.getExperimentalLongitudinalAvailable() && !is_release);
-
-    const bool op_long = CP.getOpenpilotLongitudinalControl() && !CP.getExperimentalLongitudinalAvailable();
-    const bool exp_long_enabled = CP.getExperimentalLongitudinalAvailable() && params.getBool("ExperimentalLongitudinalEnabled");
-    if (op_long || exp_long_enabled) {
+    if (hasLongitudinalControl(CP)) {
       // normal description and toggle
       e2e_toggle->setEnabled(true);
       e2e_toggle->setDescription(e2e_description);
@@ -172,6 +164,7 @@ void TogglesPanel::updateToggles() {
     } else {
       // no long for now
       e2e_toggle->setEnabled(false);
+      long_personality_setting->setEnabled(false);
       params.remove("ExperimentalMode");
 
       const QString unavailable = tr("Experimental mode is currently unavailable on this car since the car's stock ACC is used for longitudinal control.");
@@ -295,23 +288,6 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
   power_layout->addWidget(reboot_btn);
   QObject::connect(reboot_btn, &QPushButton::clicked, this, &DevicePanel::reboot);
 
-  QPushButton *rebuild_btn = new QPushButton(tr("Rebuild"));
-  rebuild_btn->setObjectName("rebuild_btn");
-  power_layout->addWidget(rebuild_btn);
-  QObject::connect(rebuild_btn, &QPushButton::clicked, [=]() {
-
-    if (ConfirmationDialog::confirm(tr("Are you sure you want to rebuild?"), tr("Rebuild"), this)) {
-      std::system("cd /data/openpilot && scons -c");
-      std::system("rm /data/openpilot/.sconsign.dblite");
-      std::system("rm /data/openpilot/prebuilt");
-      std::system("rm -rf /tmp/scons_cache");
-      if (Hardware::TICI())
-        std::system("sudo reboot");
-      else
-        std::system("reboot");
-    }
-  });
-
   QPushButton *poweroff_btn = new QPushButton(tr("Power Off"));
   poweroff_btn->setObjectName("poweroff_btn");
   power_layout->addWidget(poweroff_btn);
@@ -324,8 +300,6 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
   setStyleSheet(R"(
     #reboot_btn { height: 120px; border-radius: 15px; background-color: #393939; }
     #reboot_btn:pressed { background-color: #4a4a4a; }
-    #rebuild_btn { height: 120px; border-radius: 15px; background-color: #393939; }
-    #rebuild_btn:pressed { background-color: #4a4a4a; }
     #poweroff_btn { height: 120px; border-radius: 15px; background-color: #E22C2C; }
     #poweroff_btn:pressed { background-color: #FF2424; }
   )");
@@ -445,12 +419,6 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
     {tr("Software"), new SoftwarePanel(this)},
     {tr("Community"), new CommunityPanel(this)},
   };
-
-#ifdef ENABLE_MAPS
-  auto map_panel = new MapPanel(this);
-  panels.push_back({tr("Navigation"), map_panel});
-  QObject::connect(map_panel, &MapPanel::closeSettings, this, &SettingsWindow::closeSettings);
-#endif
 
   nav_btns = new QButtonGroup(this);
   for (auto &[name, panel] : panels) {
@@ -578,6 +546,12 @@ CommunityPanel::CommunityPanel(SettingsWindow *parent) : ListWidget(parent) {
       "HapticFeedbackWhenSpeedCamera",
       tr("Haptic feedback (speed-cam alert)"),
       tr("Haptic feedback when a speed camera is detected"),
+      "../assets/offroad/icon_openpilot.png",
+    },
+    {
+      "UseExternalNaviRoutes",
+      tr("Use external navi routes"),
+      "",
       "../assets/offroad/icon_openpilot.png",
     },
     {

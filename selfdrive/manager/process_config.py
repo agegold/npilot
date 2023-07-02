@@ -22,7 +22,8 @@ def ublox_available() -> bool:
 
 def ublox(started, params, CP: car.CarParams) -> bool:
   use_ublox = ublox_available()
-  params.put_bool("UbloxAvailable", use_ublox)
+  if use_ublox != params.get_bool("UbloxAvailable"):
+    params.put_bool("UbloxAvailable", use_ublox)
   return started and use_ublox
 
 def qcomgps(started, params, CP: car.CarParams) -> bool:
@@ -57,7 +58,7 @@ procs = [
   PythonProcess("dmonitoringd", "selfdrive.monitoring.dmonitoringd", enabled=(not PC or WEBCAM), callback=driverview),
   PythonProcess("laikad", "selfdrive.locationd.laikad"),
   PythonProcess("rawgpsd", "system.sensord.rawgps.rawgpsd", enabled=TICI, onroad=False, callback=qcomgps),
-  PythonProcess("navd", "selfdrive.navd.navd"),
+  PythonProcess("navd", "selfdrive.navd.navd", enabled=not Params().get_bool('UseExternalNaviRoutes')),
   PythonProcess("pandad", "selfdrive.boardd.pandad", offroad=True),
   PythonProcess("paramsd", "selfdrive.locationd.paramsd"),
   NativeProcess("ubloxd", "system/ubloxd", ["./ubloxd"], enabled=TICI, onroad=False, callback=ublox),
@@ -75,7 +76,8 @@ procs = [
   PythonProcess("webjoystick", "tools.joystick.web", onroad=False, callback=notcar),
 
   # neokii
-  PythonProcess("navi_controller", "selfdrive.controls.neokii.navi_controller", offroad=True, enabled=TICI),
+  PythonProcess("navi_controller", "selfdrive.controls.neokii.navi_controller"),
+  PythonProcess("navi_route", "selfdrive.controls.neokii.navi_route", enabled=Params().get_bool('UseExternalNaviRoutes')),
 ]
 
 managed_processes = {p.name: p for p in procs}

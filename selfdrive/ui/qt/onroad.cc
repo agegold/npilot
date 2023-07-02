@@ -9,7 +9,7 @@
 #include "common/timing.h"
 #include "selfdrive/ui/qt/util.h"
 #ifdef ENABLE_MAPS
-#include "selfdrive/ui/qt/maps/map.h"
+#include "selfdrive/ui/qt/maps/map_panel.h"
 #include "selfdrive/ui/qt/maps/map_helpers.h"
 #endif
 
@@ -79,14 +79,7 @@ OnroadWindow::OnroadWindow(QWidget *parent) : QWidget(parent) {
 void OnroadWindow::updateState(const UIState &s) {
   QColor bgColor = bg_colors[s.status];
   Alert alert = Alert::get(*(s.sm), s.scene.started_frame);
-  if (s.sm->updated("controlsState") || !alert.equal({})) {
-    if (alert.type == "controlsUnresponsive") {
-      bgColor = bg_colors[STATUS_ALERT];
-    } else if (alert.type == "controlsUnresponsivePermanent") {
-      bgColor = bg_colors[STATUS_DISENGAGED];
-    }
-    alerts->updateAlert(alert, bgColor);
-  }
+  alerts->updateAlert(alert);
 
   if (s.scene.map_on_left) {
     split->setDirection(QBoxLayout::LeftToRight);
@@ -96,112 +89,58 @@ void OnroadWindow::updateState(const UIState &s) {
 
   nvg->updateState(s);
 
-  if (bg != bgColor) {
-    // repaint border
+  // update spacing
+  bool navDisabledNow = (*s.sm)["controlsState"].getControlsState().getEnabled() &&
+                        !(*s.sm)["modelV2"].getModelV2().getNavEnabled();
+  if (navDisabled != navDisabledNow) {
+    split->setSpacing(navDisabledNow ? bdr_s * 2 : 0);
+    if (map) {
+      map->setFixedWidth(topWidget(this)->width() / 2 - bdr_s * (navDisabledNow ? 2 : 1));
+    }
+  }
+
+  // repaint border
+  if (bg != bgColor || navDisabled != navDisabledNow) {
     bg = bgColor;
+    navDisabled = navDisabledNow;
     update();
   }
 }
 
-void OnroadWindow::mouseReleaseEvent(QMouseEvent* e) {
-
-  QRect rc = rect();
-  if(isMapVisible()) {
-    UIState *s = uiState();
-    if(!s->scene.map_on_left)
-      rc.setWidth(rc.width() - (topWidget(this)->width() / 2));
-    else {
-      rc.setWidth(rc.width() - (topWidget(this)->width() / 2));
-      rc.setX((topWidget(this)->width() / 2));
-    }
-  }
-  if(rc.contains(e->pos())) {
-    QPoint endPos = e->pos();
-    int dx = endPos.x() - startPos.x();
-    int dy = endPos.y() - startPos.y();
-    if(std::abs(dx) > 250 || std::abs(dy) > 200) {
-
-      if(std::abs(dx) < std::abs(dy)) {
-
-        if(dy < 0) { // upward
-          Params().remove("CalibrationParams");
-          Params().remove("LiveParameters");
-          QTimer::singleShot(1500, []() {
-            Hardware::reboot();
-          });
-
-          QSound::play("../assets/sounds/reset_calibration.wav");
-        }
-        else { // downward
-          QTimer::singleShot(500, []() {
-            Hardware::reboot();
-          });
-        }
-      }
-      else if(std::abs(dx) > std::abs(dy)) {
-        if(dx < 0) { // right to left
-          if(recorder)
-            recorder->toggle();
-        }
-        else { // left to right
-          if(recorder)
-            recorder->toggle();
-        }
-      }
-
+void OnroadWindow::mousePressEvent(QMouseEvent* e) {
+#ifdef ENABLE_MAPS
+  if (map != nullptr) {
+    bool sidebarVisible = geometry().x() > 0;
+    if (map->isVisible() && !((MapPanel *)map)->isShowingMap() && e->windowPos().x() >= 1080) {
       return;
     }
-
-    if (map != nullptr) {
-      bool sidebarVisible = geometry().x() > 0;
-      map->setVisible(!sidebarVisible && !map->isVisible());
-    }
+    map->setVisible(!sidebarVisible && !map->isVisible());
+    update();
   }
-
+#endif
   // propagation event to parent(HomeWindow)
-  QWidget::mouseReleaseEvent(e);
-}
-
-void OnroadWindow::mousePressEvent(QMouseEvent* e) {
-
-  QRect rc = rect();
-  if(isMapVisible()) {
-    UIState *s = uiState();
-    if(!s->scene.map_on_left)
-      rc.setWidth(rc.width() - (topWidget(this)->width() / 2));
-    else {
-      rc.setWidth(rc.width() - (topWidget(this)->width() / 2));
-      rc.setX((topWidget(this)->width() / 2));
-    }
-  }
-
-  printf("%d, %d, %d, %d\n", rc.x(), rc.y(), rc.width(), rc.height());
-  if(rc.contains(e->pos())) {
-    startPos = e->pos();
-  }
-
   QWidget::mousePressEvent(e);
 }
 
 void OnroadWindow::offroadTransition(bool offroad) {
 #ifdef ENABLE_MAPS
   if (!offroad) {
-    if (map == nullptr && (uiState()->primeType() || !MAPBOX_TOKEN.isEmpty())) {
-      MapWindow * m = new MapWindow(get_mapbox_settings());
+    if (map == nullptr) { //&& (uiState()->primeType() || !MAPBOX_TOKEN.isEmpty())) {
+      auto m = new MapPanel(get_mapbox_settings());
       map = m;
 
-      QObject::connect(uiState(), &UIState::offroadTransition, m, &MapWindow::offroadTransition);
+      QObject::connect(m, &MapPanel::mapWindowShown, this, &OnroadWindow::mapWindowShown);
 
       m->setFixedWidth(topWidget(this)->width() / 2 - bdr_s);
       split->insertWidget(0, m);
 
-      // Make map visible after adding to split
-      m->offroadTransition(offroad);
+      // hidden by default, made visible when navRoute is published
+      m->setVisible(false);
     }
   }
 #endif
 
-  alerts->updateAlert({}, bg);
+  alerts->updateAlert({});
 
   if(offroad && recorder) {
     recorder->stop(false);
@@ -211,15 +150,21 @@ void OnroadWindow::offroadTransition(bool offroad) {
 void OnroadWindow::paintEvent(QPaintEvent *event) {
   QPainter p(this);
   p.fillRect(rect(), QColor(bg.red(), bg.green(), bg.blue(), 255));
+
+  if (isMapVisible() && navDisabled) {
+    QRect map_r = uiState()->scene.map_on_left
+                    ? QRect(0, 0, width() / 2, height())
+                    : QRect(width() / 2, 0, width() / 2, height());
+    p.fillRect(map_r, bg_colors[STATUS_DISENGAGED]);
+  }
 }
 
 // ***** onroad widgets *****
 
 // OnroadAlerts
-void OnroadAlerts::updateAlert(const Alert &a, const QColor &color) {
-  if (!alert.equal(a) || color != bg) {
+void OnroadAlerts::updateAlert(const Alert &a) {
+  if (!alert.equal(a)) {
     alert = a;
-    bg = color;
     update();
   }
 }
@@ -228,22 +173,28 @@ void OnroadAlerts::paintEvent(QPaintEvent *event) {
   if (alert.size == cereal::ControlsState::AlertSize::NONE) {
     return;
   }
-  static std::map<cereal::ControlsState::AlertSize, const int> alert_sizes = {
+  static std::map<cereal::ControlsState::AlertSize, const int> alert_heights = {
     {cereal::ControlsState::AlertSize::SMALL, 271},
     {cereal::ControlsState::AlertSize::MID, 420},
     {cereal::ControlsState::AlertSize::FULL, height()},
   };
-  int h = alert_sizes[alert.size];
-  QRect r = QRect(0, height() - h, width(), h);
+  int h = alert_heights[alert.size];
+
+  int margin = 40;
+  int radius = 30;
+  if (alert.size == cereal::ControlsState::AlertSize::FULL) {
+    margin = 0;
+    radius = 0;
+  }
+  QRect r = QRect(0 + margin, height() - h + margin, width() - margin*2, h - margin*2);
 
   QPainter p(this);
 
   // draw background + gradient
   p.setPen(Qt::NoPen);
   p.setCompositionMode(QPainter::CompositionMode_SourceOver);
-
-  p.setBrush(QBrush(bg));
-  p.drawRect(r);
+  p.setBrush(QBrush(alert_colors[alert.status]));
+  p.drawRoundedRect(r, radius, radius);
 
   QLinearGradient g(0, r.y(), 0, r.bottom());
   g.setColorAt(0, QColor::fromRgbF(0, 0, 0, 0.05));
@@ -251,7 +202,7 @@ void OnroadAlerts::paintEvent(QPaintEvent *event) {
 
   p.setCompositionMode(QPainter::CompositionMode_DestinationOver);
   p.setBrush(QBrush(g));
-  p.fillRect(r, g);
+  p.drawRoundedRect(r, radius, radius);
   p.setCompositionMode(QPainter::CompositionMode_SourceOver);
 
   // text
@@ -275,34 +226,32 @@ void OnroadAlerts::paintEvent(QPaintEvent *event) {
   }
 }
 
-ExperimentalButton::ExperimentalButton(QWidget *parent) : QPushButton(parent) {
-  setVisible(false);
+// ExperimentalButton
+ExperimentalButton::ExperimentalButton(QWidget *parent) : experimental_mode(false), QPushButton(parent) {
   setFixedSize(btn_size, btn_size);
-  setCheckable(true);
 
   params = Params();
   engage_img = loadPixmap("../assets/img_chffr_wheel.png", {img_size, img_size});
   experimental_img = loadPixmap("../assets/img_experimental.svg", {img_size, img_size});
+  QObject::connect(this, &QPushButton::clicked, this, &ExperimentalButton::changeMode);
+}
 
-  QObject::connect(this, &QPushButton::toggled, [=](bool checked) {
-    params.putBool("ExperimentalMode", checked);
-  });
+void ExperimentalButton::changeMode() {
+  const auto cp = (*uiState()->sm)["carParams"].getCarParams();
+  bool can_change = hasLongitudinalControl(cp) && params.getBool("ExperimentalModeConfirmed");
+  if (can_change) {
+    params.putBool("ExperimentalMode", !experimental_mode);
+  }
 }
 
 void ExperimentalButton::updateState(const UIState &s) {
-  const SubMaster &sm = *(s.sm);
-
-  // button is "visible" if engageable or enabled
-  const auto cs = sm["controlsState"].getControlsState();
-  setVisible(cs.getEngageable() || cs.getEnabled());
-
-  // button is "checked" if experimental mode is enabled
-  setChecked(sm["controlsState"].getControlsState().getExperimentalMode());
-
-  // disable button when experimental mode is not available, or has not been confirmed for the first time
-  const auto cp = sm["carParams"].getCarParams();
-  const bool experimental_mode_available = cp.getExperimentalLongitudinalAvailable() ? params.getBool("ExperimentalLongitudinalEnabled") : cp.getOpenpilotLongitudinalControl();
-  setEnabled(params.getBool("ExperimentalModeConfirmed") && experimental_mode_available);
+  const auto cs = (*s.sm)["controlsState"].getControlsState();
+  bool eng = cs.getEngageable() || cs.getEnabled();
+  if ((cs.getExperimentalMode() != experimental_mode) || (eng != engageable)) {
+    engageable = eng;
+    experimental_mode = cs.getExperimentalMode();
+    update();
+  }
 }
 
 void ExperimentalButton::paintEvent(QPaintEvent *event) {
@@ -310,13 +259,13 @@ void ExperimentalButton::paintEvent(QPaintEvent *event) {
   p.setRenderHint(QPainter::Antialiasing);
 
   QPoint center(btn_size / 2, btn_size / 2);
-  QPixmap img = isChecked() ? experimental_img : engage_img;
+  QPixmap img = experimental_mode ? experimental_img : engage_img;
 
   p.setOpacity(1.0);
   p.setPen(Qt::NoPen);
   p.setBrush(QColor(0, 0, 0, 166));
   p.drawEllipse(center, btn_size / 2, btn_size / 2);
-  p.setOpacity(isDown() ? 0.8 : 1.0);
+  p.setOpacity((isDown() || !engageable) ? 0.6 : 1.0);
   p.drawPixmap((btn_size - img_size) / 2, (btn_size - img_size) / 2, img);
 }
 
@@ -338,6 +287,8 @@ AnnotatedCameraWidget::AnnotatedCameraWidget(VisionStreamType type, QWidget* par
   ic_autohold_active = QPixmap("../assets/images/img_autohold_active.png").scaled(img_size, img_size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
   ic_nda = QPixmap("../assets/images/img_nda.png");
   ic_hda = QPixmap("../assets/images/img_hda.png");
+  ic_nda2 = QPixmap("../assets/images/img_nda2.png");
+  ic_hda2 = QPixmap("../assets/images/img_hda2.png");
   ic_tire_pressure = QPixmap("../assets/images/img_tire_pressure.png");
   ic_turn_signal_l = QPixmap("../assets/images/turn_signal_l.png");
   ic_turn_signal_r = QPixmap("../assets/images/turn_signal_r.png");
@@ -583,9 +534,7 @@ void AnnotatedCameraWidget::showEvent(QShowEvent *event) {
 }
 
 void AnnotatedCameraWidget::drawText(QPainter &p, int x, int y, const QString &text, int alpha) {
-  QFontMetrics fm(p.font());
-  QRect init_rect = fm.boundingRect(text);
-  QRect real_rect = fm.boundingRect(init_rect, 0, text);
+  QRect real_rect = p.fontMetrics().boundingRect(text);
   real_rect.moveCenter({x, y - real_rect.height() / 2});
 
   p.setPen(QColor(0xff, 0xff, 0xff, alpha));
@@ -870,6 +819,7 @@ void AnnotatedCameraWidget::drawMaxSpeed(QPainter &p) {
   int camLimitSpeedLeftDist = navi_data.getCamLimitSpeedLeftDist();
   int sectionLimitSpeed = navi_data.getSectionLimitSpeed();
   int sectionLeftDist = navi_data.getSectionLeftDist();
+  int isNda2 = navi_data.getIsNda2();
 
   int limit_speed = 0;
   int left_dist = 0;
@@ -884,13 +834,21 @@ void AnnotatedCameraWidget::drawMaxSpeed(QPainter &p) {
   }
 
   if(activeNDA > 0) {
-      int w = 120;
-      int h = 54;
-      int x = (width() + (bdr_s*2))/2 - w/2 - bdr_s;
-      int y = 40 - bdr_s;
-
       p.setOpacity(1.f);
-      p.drawPixmap(x, y, w, h, activeNDA == 1 ? ic_nda : ic_hda);
+      if(isNda2) {
+        int w = 155;
+        int h = 54;
+        int x = (width() + (bdr_s*2))/2 - w/2 - bdr_s;
+        int y = 40 - bdr_s;
+        p.drawPixmap(x, y, w, h, activeNDA == 1 ? ic_nda2 : ic_hda2);
+      }
+      else {
+        int w = 120;
+        int h = 54;
+        int x = (width() + (bdr_s*2))/2 - w/2 - bdr_s;
+        int y = 40 - bdr_s;
+        p.drawPixmap(x, y, w, h, activeNDA == 1 ? ic_nda : ic_hda);
+      }
   }
   else {
     limit_speed = car_state.getNavSpeedLimit();
@@ -1492,6 +1450,8 @@ void AnnotatedCameraWidget::drawDriverState(QPainter &painter, const UIState *s)
 }
 
 void AnnotatedCameraWidget::drawMisc(QPainter &p) {
+  if(width() < 1080) return;
+
   p.save();
   UIState *s = uiState();
   const SubMaster &sm = *(s->sm);

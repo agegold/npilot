@@ -169,7 +169,7 @@ CAR_INFO: Dict[str, Optional[Union[HyundaiCarInfo, List[HyundaiCarInfo]]]] = {
   CAR.KONA_EV_2022: HyundaiCarInfo("Hyundai Kona Electric 2022", car_parts=CarParts.common([CarHarness.hyundai_o])),
   CAR.KONA_HEV: HyundaiCarInfo("Hyundai Kona Hybrid 2020", video_link="https://youtu.be/0dwpAHiZgFo", car_parts=CarParts.common([CarHarness.hyundai_i])),  # TODO: check packages
   CAR.SANTA_FE: HyundaiCarInfo("Hyundai Santa Fe 2019-20", "All", car_parts=CarParts.common([CarHarness.hyundai_d])),
-  CAR.SANTA_FE_2022: HyundaiCarInfo("Hyundai Santa Fe 2021-22", "All", video_link="https://youtu.be/VnHzSTygTS4", car_parts=CarParts.common([CarHarness.hyundai_l])),
+  CAR.SANTA_FE_2022: HyundaiCarInfo("Hyundai Santa Fe 2021-23", "All", video_link="https://youtu.be/VnHzSTygTS4", car_parts=CarParts.common([CarHarness.hyundai_l])),
   CAR.SANTA_FE_HEV_2022: HyundaiCarInfo("Hyundai Santa Fe Hybrid 2022-23", "All", car_parts=CarParts.common([CarHarness.hyundai_l])),
   CAR.SANTA_FE_PHEV_2022: HyundaiCarInfo("Hyundai Santa Fe Plug-in Hybrid 2022", "All", car_parts=CarParts.common([CarHarness.hyundai_l])),
   CAR.SONATA: HyundaiCarInfo("Hyundai Sonata 2020-23", "All", video_link="https://www.youtube.com/watch?v=ix63r9kE3Fw", car_parts=CarParts.common([CarHarness.hyundai_a])),
@@ -885,6 +885,7 @@ FW_VERSIONS = {
       b'\xf1\x8758910-S2GA0\xf1\x00TM ESC \x04 102!\x04\x05 58910-S2GA0',
       b'\xf1\x00TM ESC \x04 102!\x04\x05 58910-S2GA0',
       b'\xf1\x00TM ESC \x04 101 \x08\x04 58910-S2GA0',
+      b'\xf1\x00TM ESC \x02 103"\x07\x08 58910-S2GA0',
     ],
     (Ecu.engine, 0x7e0, None): [
       b'\xf1\x870\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xf1\x81HM6M1_0a0_L50',
@@ -897,6 +898,7 @@ FW_VERSIONS = {
       b'\xf1\x870\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xf1\x82TMDWN5TMD3TXXJ1A',
       b'\xf1\x81HM6M2_0a0_G00',
       b'\xf1\x870\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xf1\x81HM6M1_0a0_J10',
+      b'\xf1\x8739101-2STN8\xf1\x81HM6M1_0a0_M00',
     ],
     (Ecu.eps, 0x7d4, None): [
       b'\xf1\x00TM  MDPS C 1.00 1.02 56370-S2AA0 0B19',
@@ -907,6 +909,7 @@ FW_VERSIONS = {
       b'\xf1\x00TMA MFC  AT USA LHD 1.00 1.00 99211-S2500 200720',
       b'\xf1\x00TM  MFC  AT EUR LHD 1.00 1.03 99211-S1500 210224',
       b'\xf1\x00TMA MFC  AT USA LHD 1.00 1.01 99211-S2500 210205',
+      b'\xf1\x00TMA MFC  AT USA LHD 1.00 1.03 99211-S2500 220414',
     ],
     (Ecu.transmission, 0x7e1, None): [
       b'\xf1\x00HT6WA280BLHT6WAD00A1STM2G25NH2\x00\x00\x00\x00\x00\x00\xf8\xc0\xc3\xaa',
@@ -922,6 +925,7 @@ FW_VERSIONS = {
       b'\xf1\x00T02601BL  T02900A1  VTMPT25XXX900NS8\xb7\xaa\xfe\xfc',
       b'\xf1\x87954A02N250\x00\x00\x00\x00\x00\xf1\x81T02900A1  \xf1\x00T02601BL  T02900A1  VTMPT25XXX900NS8\xb7\xaa\xfe\xfc',
       b'\xf1\x00T02601BL  T02800A1  VTMPT25XXX800NS4\xed\xaf\xed\xf5',
+      b'\xf1\x00T02601BL  T02900A1  VTMPT25XXW900NS1c\x918\xc5',
     ],
   },
   CAR.SANTA_FE_HEV_2022: {
@@ -1844,6 +1848,7 @@ FW_VERSIONS = {
   CAR.GENESIS_GV80: {
     (Ecu.fwdCamera, 0x7c4, None): [
       b'\xf1\x00JX1 MFC  AT USA LHD 1.00 1.02 99211-T6110 220513',
+      b'\xf1\x00JX1 MFC  AT KOR LHD 1.00 1.02 99211-T6110 220513',
     ],
     (Ecu.fwdRadar, 0x7d0, None): [
       b'\xf1\x00JX1_ SCC FHCUP      1.00 1.01 99110-T6100         ',
@@ -1865,6 +1870,8 @@ CAN_GEARS = {
 }
 
 CANFD_CAR = {CAR.KIA_EV6, CAR.IONIQ_5, CAR.TUCSON_4TH_GEN, CAR.TUCSON_HYBRID_4TH_GEN, CAR.KIA_SPORTAGE_HYBRID_5TH_GEN, CAR.SANTA_CRUZ_1ST_GEN, CAR.KIA_SPORTAGE_5TH_GEN, CAR.GENESIS_GV70_1ST_GEN, CAR.KIA_SORENTO_PHEV_4TH_GEN, CAR.GENESIS_GV60_EV_1ST_GEN, CAR.KIA_SORENTO_4TH_GEN, CAR.KIA_NIRO_HEV_2ND_GEN, CAR.KIA_NIRO_EV_2ND_GEN, CAR.GENESIS_GV80}
+CANFD_HDA2_CAR = {CAR.GENESIS_GV80}
+CANFD_HDA2_ALT_GEARS = {CAR.GENESIS_GV80}
 
 # The radar does SCC on these cars when HDA I, rather than the camera
 CANFD_RADAR_SCC_CAR = {CAR.GENESIS_GV70_1ST_GEN, CAR.KIA_SORENTO_PHEV_4TH_GEN, CAR.KIA_SORENTO_4TH_GEN, CAR.GENESIS_GV80}

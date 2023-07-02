@@ -24,7 +24,7 @@ class OnroadAlerts : public QWidget {
 
 public:
   OnroadAlerts(QWidget *parent = 0) : QWidget(parent) {};
-  void updateAlert(const Alert &a, const QColor &color);
+  void updateAlert(const Alert &a);
 
 protected:
   void paintEvent(QPaintEvent*) override;
@@ -43,10 +43,13 @@ public:
 
 private:
   void paintEvent(QPaintEvent *event) override;
+  void changeMode();
 
   Params params;
   QPixmap engage_img;
   QPixmap experimental_img;
+  bool experimental_mode;
+  bool engageable;
 };
 
 // container window for the NVG UI
@@ -99,6 +102,8 @@ protected:
   QPixmap ic_autohold_active;
   QPixmap ic_nda;
   QPixmap ic_hda;
+  QPixmap ic_nda2;
+  QPixmap ic_hda2;
   QPixmap ic_tire_pressure;
   QPixmap ic_turn_signal_l;
   QPixmap ic_turn_signal_r;
@@ -128,18 +133,18 @@ public:
   OnroadWindow(QWidget* parent = 0);
   bool isMapVisible() const { return map && map->isVisible(); }
 
-protected:
-  void mousePressEvent(QMouseEvent* e) override;
-  void mouseReleaseEvent(QMouseEvent* e) override;
-
-  void paintEvent(QPaintEvent *event) override;
+signals:
+  void mapWindowShown();
 
 private:
+  void paintEvent(QPaintEvent *event);
+  void mousePressEvent(QMouseEvent* e) override;
   OnroadAlerts *alerts;
   AnnotatedCameraWidget *nvg;
   QColor bg = bg_colors[STATUS_DISENGAGED];
   QWidget *map = nullptr;
   QHBoxLayout* split;
+  bool navDisabled = false;
 
   // neokii
 private:
