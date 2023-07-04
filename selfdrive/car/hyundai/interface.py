@@ -146,7 +146,7 @@ class CarInterface(CarInterfaceBase):
       ret.wheelbase = 3.16
       ret.centerToFront = ret.wheelbase * 0.4
     # hyundai
-    elif candidate in [CAR.SANTA_FE]:
+    elif candidate in [CAR.SANTA_FE, CAR.SANTA_FE_DM]:
       ret.mass = 1694 + STD_CARGO_KG
       ret.wheelbase = 2.766
       ret.centerToFront = ret.wheelbase * 0.4
