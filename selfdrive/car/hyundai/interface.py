@@ -244,7 +244,7 @@ class CarInterface(CarInterfaceBase):
       ret.wheelbase = 2.67
       tire_stiffness_factor = 0.7
       ret.centerToFront = ret.wheelbase * 0.4
-    elif candidate in [CAR.CASPER, CAR.CASPER1]:
+    elif candidate == CAR.CASPER:
       ret.mass = 985. + STD_CARGO_KG
       ret.wheelbase = 2.40
       tire_stiffness_factor = 0.7
