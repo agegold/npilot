@@ -423,6 +423,7 @@ DBC = {
   CAR.TUCSON_TL_SCC: dbc_dict('hyundai_kia_generic', None),
   CAR.MAXCRUZE: dbc_dict('hyundai_kia_generic', None),
   CAR.CASPER: dbc_dict('hyundai_kia_generic', None),
+  CAR.CASPER1: dbc_dict('hyundai_kia_generic', None),
 
   # kia
   CAR.FORTE: dbc_dict('hyundai_kia_generic', None),
