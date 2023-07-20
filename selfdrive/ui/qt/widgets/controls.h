@@ -11,8 +11,6 @@
 #include "selfdrive/ui/qt/widgets/input.h"
 #include "selfdrive/ui/qt/widgets/toggle.h"
 
-QFrame *horizontal_line(QWidget *parent = nullptr);
-
 class ElidedLabel : public QLabel {
   Q_OBJECT
 
@@ -297,4 +295,28 @@ public:
   LayoutWidget(QLayout *l, QWidget *parent = nullptr) : QWidget(parent) {
     setLayout(l);
   }
+};
+
+#include <QWidget>
+#include <QtWidgets>
+#include <QtNetwork>
+
+class NetworkImageWidget : public QWidget
+{
+    Q_OBJECT
+
+public:
+    explicit NetworkImageWidget(QWidget *parent = nullptr);
+
+public slots:
+    void requestImage(const QString &imageUrl);
+
+private slots:
+    void onImageDownloaded(QNetworkReply *reply);
+
+private:
+    QVBoxLayout *layout;
+    QLabel *imageLabel;
+    QNetworkAccessManager *networkManager;
+    QString lastUrl;
 };

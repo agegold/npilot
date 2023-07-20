@@ -71,7 +71,7 @@ protected:
   inline QColor whiteColor(int alpha = 255) { return QColor(255, 255, 255, alpha); }
   inline QColor blackColor(int alpha = 255) { return QColor(0, 0, 0, alpha); }
 
-  //ExperimentalButton *experimental_btn;
+  ExperimentalButton *experimental_btn;
   bool dmActive = false;
   bool hideDM = false;
   QPixmap dm_img;
@@ -123,6 +123,11 @@ protected:
   void drawMisc(QPainter &p);
   void drawHud(QPainter &p, const cereal::ModelDataV2::Reader &model);
 
+  // neokii
+private:
+  ScreenRecoder* recorder;
+  std::shared_ptr<QTimer> record_timer;
+  QPoint startPos;
 };
 
 // container for all onroad widgets
@@ -132,9 +137,10 @@ class OnroadWindow : public QWidget {
 public:
   OnroadWindow(QWidget* parent = 0);
   bool isMapVisible() const { return map && map->isVisible(); }
+  void showMapPanel(bool show) { if (map) map->setVisible(show); }
 
 signals:
-  void mapWindowShown();
+  void mapPanelRequested();
 
 private:
   void paintEvent(QPaintEvent *event);
@@ -144,13 +150,6 @@ private:
   QColor bg = bg_colors[STATUS_DISENGAGED];
   QWidget *map = nullptr;
   QHBoxLayout* split;
-  bool navDisabled = false;
-
-  // neokii
-private:
-  ScreenRecoder* recorder;
-  std::shared_ptr<QTimer> record_timer;
-  QPoint startPos;
 
 private slots:
   void offroadTransition(bool offroad);

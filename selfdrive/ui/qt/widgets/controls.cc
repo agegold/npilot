@@ -3,18 +3,6 @@
 #include <QPainter>
 #include <QStyleOption>
 
-QFrame *horizontal_line(QWidget *parent) {
-  QFrame *line = new QFrame(parent);
-  line->setFrameShape(QFrame::StyledPanel);
-  line->setStyleSheet(R"(
-    border-width: 1px;
-    border-bottom-style: solid;
-    border-color: gray;
-  )");
-  line->setFixedHeight(2);
-  return line;
-}
-
 AbstractControl::AbstractControl(const QString &title, const QString &desc, const QString &icon, QWidget *parent) : QFrame(parent) {
   QVBoxLayout *main_layout = new QVBoxLayout(this);
   main_layout->setMargin(0);
@@ -124,4 +112,38 @@ void ElidedLabel::paintEvent(QPaintEvent *event) {
   QStyleOption opt;
   opt.initFrom(this);
   style()->drawItemText(&painter, contentsRect(), alignment(), opt.palette, isEnabled(), elidedText_, foregroundRole());
+}
+
+
+NetworkImageWidget::NetworkImageWidget(QWidget *parent)
+    : QWidget(parent)
+{
+    layout = new QVBoxLayout(this);
+    imageLabel = new QLabel(this);
+    networkManager = new QNetworkAccessManager(this);
+    connect(networkManager, &QNetworkAccessManager::finished, this, &NetworkImageWidget::onImageDownloaded);
+
+    layout->addWidget(imageLabel);
+}
+
+void NetworkImageWidget::requestImage(const QString &imageUrl)
+{
+    if(imageUrl == lastUrl) return;
+    lastUrl = imageUrl;
+    QNetworkRequest request(imageUrl);
+    networkManager->get(request);
+}
+
+void NetworkImageWidget::onImageDownloaded(QNetworkReply *reply)
+{
+    if (reply->error() == QNetworkReply::NoError) {
+        QByteArray imageData = reply->readAll();
+        QImage image = QImage::fromData(imageData);
+        if (!image.isNull()) {
+            QPixmap pixmap = QPixmap::fromImage(image);
+            imageLabel->setPixmap(pixmap.scaledToWidth(200, Qt::SmoothTransformation));
+        }
+    }
+
+    reply->deleteLater();
 }
