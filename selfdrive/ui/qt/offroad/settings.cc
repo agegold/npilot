@@ -269,14 +269,14 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
 	
   const char* cal_ok = "cp -f /data/openpilot/selfdrive/assets/CalibrationParams /data/params/d/";
   auto calokbtn = new ButtonControl("캘리브레이션 강제 활성화", "실행");
-  QObject::connect(calokbtn, &QPushButton::released, [=]() {
+  connect(calokbtn, &ButtonControl::clicked, [&]() {
       if (ConfirmationDialog::confirm(tr("Are you sure you want to calibration?"), tr("Force"), this)) {
           std::system(cal_ok);
     }
   }
   );
   addItem(calokbtn);
-	
+  	
   auto translateBtn = new ButtonControl(tr("Change Language"), tr("CHANGE"), "");
   connect(translateBtn, &ButtonControl::clicked, [=]() {
     QMap<QString, QString> langs = getSupportedLanguages();
