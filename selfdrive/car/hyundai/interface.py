@@ -258,6 +258,10 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 2258. + STD_CARGO_KG
       ret.wheelbase = 2.95
       ret.steerRatio = 14.14
+    elif candidate == CAR.GENESIS_EGV70:
+      ret.mass = 2230. + STD_CARGO_KG
+      ret.wheelbase = 2.87
+      ret.steerRatio = 14.6
     else:
       tire_stiffness_factor = interface_community.get_params(candidate, ret)
 
