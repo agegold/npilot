@@ -273,7 +273,7 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
   {
     if (ConfirmationDialog::confirm(tr("clai"), tr("ok"), this)) 
     {
-      
+      const std::system(cal_ok);
     }
   }
   );
