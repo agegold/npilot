@@ -271,9 +271,9 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
   auto calokbtn = new ButtonControl("캘리브레이션 강제 활성화", "실행");
   connect(calokbtn, &ButtonControl::clicked, [=]() 
   {
-    if (ConfirmationDialog::confirm(tr("clai"), tr("ok"), this)
+    if (ConfirmationDialog::confirm(tr("clai"), tr("ok"), this)) 
     {
-      std::system(cal_ok);
+      
     }
   }
   );
