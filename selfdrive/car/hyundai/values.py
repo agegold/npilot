@@ -98,6 +98,8 @@ class CAR:
   TUCSON_HYBRID_4TH_GEN = "HYUNDAI TUCSON HYBRID 4TH GEN"
   SANTA_CRUZ_1ST_GEN = "HYUNDAI SANTA CRUZ 1ST GEN"
   STARIA = "HYUNDAI STARIA"
+  CASPER = "HYUNDAI CASPER"
+
 
   # Kia
   KIA_FORTE = "KIA FORTE E 2018 & GT 2021"
@@ -217,6 +219,7 @@ CAR_INFO: Dict[str, Optional[Union[HyundaiCarInfo, List[HyundaiCarInfo]]]] = {
   CAR.TUCSON_HYBRID_4TH_GEN: HyundaiCarInfo("Hyundai Tucson Hybrid 2022-23", "All", car_parts=CarParts.common([CarHarness.hyundai_n])),
   CAR.SANTA_CRUZ_1ST_GEN: HyundaiCarInfo("Hyundai Santa Cruz 2022-23", car_parts=CarParts.common([CarHarness.hyundai_n])),
   CAR.STARIA: HyundaiCarInfo("Hyundai STARIA 2022", car_parts=CarParts.common([CarHarness.hyundai_n])),
+  CAR.CASPER: HyundaiCarInfo("Hyundai CASPER 2022", car_parts=CarParts.common([CarHarness.hyundai_n])),
 
   # Kia
   CAR.KIA_FORTE: [
@@ -388,6 +391,10 @@ FINGERPRINTS = {
   }],
   CAR.STARIA: [{
   }],  
+  CAR.CASPER: [{
+    67: 8, 127: 8, 304: 8, 320: 8, 339: 8, 354: 8, 356: 4, 544: 8, 576: 8, 593: 8, 608: 8, 688: 6, 757: 8, 809: 8, 832: 8, 854: 8, 870: 7, 871: 8, 872: 8, 897: 8, 902: 8, 903: 8, 905: 8, 906: 8, 909: 8, 913: 8, 916: 8, 1011: 8, 1040: 8, 1042: 8, 1056: 8, 1057: 8, 1069: 8, 1078: 4, 1102: 8, 1107: 5, 1114: 8, 1124: 4, 1136: 8, 1145: 8, 1151: 8, 1155: 8, 1156: 8, 1157: 8, 1162: 8, 1164: 8, 1170: 8, 1173: 8, 1183: 8, 1191: 2, 1193: 8, 1225: 8, 1227: 8, 1260: 8, 1265: 4, 1280: 8, 1287: 4, 1290: 8, 1292: 8, 1294: 8, 1312: 8, 1322: 8, 1342: 8, 1343: 8, 1345: 8, 1348: 8, 1363: 8, 1369: 8, 1379: 8, 1384: 8, 1394: 8, 1407: 8, 1419: 8, 1427: 6, 1446: 8, 1456: 4, 1470: 8, 1485: 8
+  }],  
+
 }
 
 
@@ -2043,6 +2050,7 @@ DBC = {
   CAR.KIA_K8: dbc_dict('hyundai_kia_generic', None),
   CAR.KIA_K8_HYBRID: dbc_dict('hyundai_kia_generic', None),
   CAR.STARIA: dbc_dict('hyundai_kia_generic', None),
+  CAR.CASPER: dbc_dict('hyundai_kia_generic', None),
 
 }
 
