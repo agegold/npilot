@@ -159,8 +159,15 @@ class CarInterface(CarInterfaceBase):
     elif candidate == CAR.CASPER:
       ret.mass = 985. + STD_CARGO_KG
       ret.wheelbase = 2.40
-      tire_stiffness_factor = 0.7
-      ret.centerToFront = ret.wheelbase * 0.4
+      ret.steerRatio = 14.2
+    elif candidate == CAR.GRANDEUR_GN7:
+      ret.mass = 1620. + STD_CARGO_KG
+      ret.wheelbase = 2.895
+      ret.steerRatio = 14.2
+    elif candidate == CAR.GRANDEUR_GN7_HTBRID:
+      ret.mass = 1700. + STD_CARGO_KG
+      ret.wheelbase = 2.895
+      ret.steerRatio = 14.2
 
     # Kia
     elif candidate == CAR.KIA_SORENTO:
