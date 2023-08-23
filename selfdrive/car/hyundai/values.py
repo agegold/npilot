@@ -1987,7 +1987,7 @@ CANFD_HDA2_ALT_GEARS = {CAR.GENESIS_GV80}
 CANFD_RADAR_SCC_CAR = {CAR.GENESIS_GV70_1ST_GEN, CAR.KIA_SORENTO_PHEV_4TH_GEN, CAR.KIA_SORENTO_4TH_GEN, CAR.GENESIS_GV80,
 		      CAR.KIA_CARNIVAL_4TH_GEN, CAR.KIA_SORENTO_HEV_4TH_GEN, 
     		      CAR.GENESIS_EGV70, CAR.GENESIS_G80_RG3, CAR.GENESIS_EG80_RG3, CAR.KIA_K8, CAR.KIA_K8_HYBRID, CAR.STARIA,
-		      CAR.GRANDER_GN7, CAR.GRANDER_GN7_HYBRID}
+		      CAR.GRANDEUR_GN7, CAR.GRANDEUR_GN7_HYBRID}
 
 # The camera does SCC on these cars, rather than the radar
 CAMERA_SCC_CAR = {CAR.KONA_EV_2022, }
@@ -2077,8 +2077,8 @@ DBC = {
   CAR.KIA_K8_HYBRID: dbc_dict('hyundai_kia_generic', None),
   CAR.STARIA: dbc_dict('hyundai_kia_generic', None),
   CAR.CASPER: dbc_dict('hyundai_kia_generic', None),
-  CAR.GRANDER_GN7: dbc_dict('hyundai_kia_generic', None),
-  CAR.GRANDER_GN7_HYBRID: dbc_dict('hyundai_kia_generic', None),	
+  CAR.GRANDEUR_GN7: dbc_dict('hyundai_kia_generic', None),
+  CAR.GRANDEUR_GN7_HYBRID: dbc_dict('hyundai_kia_generic', None),	
 }
 
 
