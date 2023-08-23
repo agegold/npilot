@@ -97,6 +97,7 @@ class CAR:
   TUCSON_4TH_GEN = "HYUNDAI TUCSON 4TH GEN"
   TUCSON_HYBRID_4TH_GEN = "HYUNDAI TUCSON HYBRID 4TH GEN"
   SANTA_CRUZ_1ST_GEN = "HYUNDAI SANTA CRUZ 1ST GEN"
+  STARIA = "HYUNDAI STARIA"
 
   # Kia
   KIA_FORTE = "KIA FORTE E 2018 & GT 2021"
@@ -215,6 +216,7 @@ CAR_INFO: Dict[str, Optional[Union[HyundaiCarInfo, List[HyundaiCarInfo]]]] = {
   ],
   CAR.TUCSON_HYBRID_4TH_GEN: HyundaiCarInfo("Hyundai Tucson Hybrid 2022-23", "All", car_parts=CarParts.common([CarHarness.hyundai_n])),
   CAR.SANTA_CRUZ_1ST_GEN: HyundaiCarInfo("Hyundai Santa Cruz 2022-23", car_parts=CarParts.common([CarHarness.hyundai_n])),
+  CAR.STARIA: HyundaiCarInfo("Hyundai STARIA 2022", car_parts=CarParts.common([CarHarness.hyundai_n])),
 
   # Kia
   CAR.KIA_FORTE: [
@@ -384,6 +386,8 @@ FINGERPRINTS = {
   }],
   CAR.KIA_K8_HYBRID: [{
   }],
+  CAR.STARIA: [{
+  }],  
 }
 
 
@@ -1948,13 +1952,13 @@ CANFD_CAR = {CAR.KIA_EV6, CAR.IONIQ_5, CAR.IONIQ_6, CAR.TUCSON_4TH_GEN, CAR.TUCS
              CAR.SANTA_CRUZ_1ST_GEN, CAR.KIA_SPORTAGE_5TH_GEN, CAR.GENESIS_GV70_1ST_GEN, CAR.KIA_SORENTO_PHEV_4TH_GEN,
              CAR.GENESIS_GV60_EV_1ST_GEN, CAR.KIA_SORENTO_4TH_GEN, CAR.KIA_NIRO_HEV_2ND_GEN, CAR.KIA_NIRO_EV_2ND_GEN,
              CAR.GENESIS_GV80, CAR.KIA_CARNIVAL_4TH_GEN, CAR.GENESIS_EGV70, CAR.GENESIS_G80_RG3, CAR.GENESIS_EG80_RG3,
-             CAR.KIA_K8, CAR.KIA_K8_HYBRID}
+             CAR.KIA_K8, CAR.KIA_K8_HYBRID, CAR.STARIA}
 CANFD_HDA2_CAR = {CAR.GENESIS_GV80}
 CANFD_HDA2_ALT_GEARS = {CAR.GENESIS_GV80}
 
 # The radar does SCC on these cars when HDA I, rather than the camera
 CANFD_RADAR_SCC_CAR = {CAR.GENESIS_GV70_1ST_GEN, CAR.KIA_SORENTO_PHEV_4TH_GEN, CAR.KIA_SORENTO_4TH_GEN, CAR.GENESIS_GV80, CAR.KIA_CARNIVAL_4TH_GEN, CAR.GENESIS_EGV70, CAR.GENESIS_G80_RG3,
-                      CAR.GENESIS_EG80_RG3, CAR.KIA_K8, CAR.KIA_K8_HYBRID}
+                      CAR.GENESIS_EG80_RG3, CAR.KIA_K8, CAR.KIA_K8_HYBRID, CAR.STARIA}
 
 # The camera does SCC on these cars, rather than the radar
 CAMERA_SCC_CAR = {CAR.KONA_EV_2022, }
@@ -2038,6 +2042,8 @@ DBC = {
   CAR.GENESIS_EG80_RG3: dbc_dict('hyundai_kia_generic', None),
   CAR.KIA_K8: dbc_dict('hyundai_kia_generic', None),
   CAR.KIA_K8_HYBRID: dbc_dict('hyundai_kia_generic', None),
+  CAR.STARIA: dbc_dict('hyundai_kia_generic', None),
+
 }
 
 
