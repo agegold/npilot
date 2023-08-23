@@ -131,6 +131,7 @@ class CAR:
   GENESIS_G90 = "GENESIS G90 2017"
   GENESIS_GV80 = "GENESIS GV80 2023"
   GENESIS_EGV70 = "GENESIS eGV70 1ST GEN"
+  GENESIS_G80_RG3 = "GENESIS G80 2020"
 
 
 class Footnote(Enum):
@@ -277,6 +278,7 @@ CAR_INFO: Dict[str, Optional[Union[HyundaiCarInfo, List[HyundaiCarInfo]]]] = {
   CAR.GENESIS_G90: HyundaiCarInfo("Genesis G90 2017-18", "All", car_parts=CarParts.common([CarHarness.hyundai_c])),
   CAR.GENESIS_GV80: HyundaiCarInfo("Genesis GV80 2023", "All", car_parts=CarParts.common([CarHarness.hyundai_m])),
   CAR.GENESIS_EGV70: HyundaiCarInfo("Genesis eGV70 2023", "All", car_parts=CarParts.common([CarHarness.hyundai_m])),
+  CAR.GENESIS_G80_RG3 : HyundaiCarInfo("Genesis G80_RG3 2020", "All", car_parts=CarParts.common([CarHarness.hyundai_m])),
 
 }
 
@@ -365,7 +367,8 @@ FINGERPRINTS = {
   }],
   CAR.GENESIS_EGV70: [{
   }],
-
+  CAR.GENESIS_G80_RG3: [{
+  }],
 }
 
 
@@ -1929,12 +1932,12 @@ CAN_GEARS = {
 CANFD_CAR = {CAR.KIA_EV6, CAR.IONIQ_5, CAR.IONIQ_6, CAR.TUCSON_4TH_GEN, CAR.TUCSON_HYBRID_4TH_GEN, CAR.KIA_SPORTAGE_HYBRID_5TH_GEN,
              CAR.SANTA_CRUZ_1ST_GEN, CAR.KIA_SPORTAGE_5TH_GEN, CAR.GENESIS_GV70_1ST_GEN, CAR.KIA_SORENTO_PHEV_4TH_GEN,
              CAR.GENESIS_GV60_EV_1ST_GEN, CAR.KIA_SORENTO_4TH_GEN, CAR.KIA_NIRO_HEV_2ND_GEN, CAR.KIA_NIRO_EV_2ND_GEN,
-             CAR.GENESIS_GV80, CAR.KIA_CARNIVAL_4TH_GEN, CAR.GENESIS_EGV70}
+             CAR.GENESIS_GV80, CAR.KIA_CARNIVAL_4TH_GEN, CAR.GENESIS_EGV70, CAR.GENESIS_G80_RG3}
 CANFD_HDA2_CAR = {CAR.GENESIS_GV80}
 CANFD_HDA2_ALT_GEARS = {CAR.GENESIS_GV80}
 
 # The radar does SCC on these cars when HDA I, rather than the camera
-CANFD_RADAR_SCC_CAR = {CAR.GENESIS_GV70_1ST_GEN, CAR.KIA_SORENTO_PHEV_4TH_GEN, CAR.KIA_SORENTO_4TH_GEN, CAR.GENESIS_GV80, CAR.KIA_CARNIVAL_4TH_GEN, CAR.GENESIS_EGV70}
+CANFD_RADAR_SCC_CAR = {CAR.GENESIS_GV70_1ST_GEN, CAR.KIA_SORENTO_PHEV_4TH_GEN, CAR.KIA_SORENTO_4TH_GEN, CAR.GENESIS_GV80, CAR.KIA_CARNIVAL_4TH_GEN, CAR.GENESIS_EGV70, CAR.GENESIS_G80_RG3}
 
 # The camera does SCC on these cars, rather than the radar
 CAMERA_SCC_CAR = {CAR.KONA_EV_2022, }
@@ -2014,6 +2017,7 @@ DBC = {
   CAR.GENESIS_GV80: dbc_dict('hyundai_canfd', None),
   CAR.KIA_CARNIVAL_4TH_GEN: dbc_dict('hyundai_canfd', None),
   CAR.GENESIS_EGV70: dbc_dict('hyundai_canfd', None),
+  CAR.GENESIS_G80_RG3: dbc_dict('hyundai_kia_generic', None),
 }
 
 
