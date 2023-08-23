@@ -2,10 +2,10 @@
 from math import cos, sin
 from cereal import car
 from opendbc.can.parser import CANParser
-from common.conversions import Conversions as CV
-from selfdrive.car.ford.fordcan import CanBus
-from selfdrive.car.ford.values import DBC, RADAR
-from selfdrive.car.interfaces import RadarInterfaceBase
+from openpilot.common.conversions import Conversions as CV
+from openpilot.selfdrive.car.ford.fordcan import CanBus
+from openpilot.selfdrive.car.ford.values import DBC, RADAR
+from openpilot.selfdrive.car.interfaces import RadarInterfaceBase
 
 DELPHI_ESR_RADAR_MSGS = list(range(0x500, 0x540))
 
@@ -15,7 +15,7 @@ DELPHI_MRR_RADAR_MSG_COUNT = 64
 
 def _create_delphi_esr_radar_can_parser(CP) -> CANParser:
   msg_n = len(DELPHI_ESR_RADAR_MSGS)
-  messages = list(zip(DELPHI_ESR_RADAR_MSGS, [20] * msg_n))
+  messages = list(zip(DELPHI_ESR_RADAR_MSGS, [20] * msg_n, strict=True))
 
   return CANParser(RADAR.DELPHI_ESR, messages, CanBus(CP).radar)
 

@@ -1,11 +1,11 @@
 from math import atan2
 
 from cereal import car
-from common.numpy_fast import interp
-from common.realtime import DT_DMON
-from common.filter_simple import FirstOrderFilter
-from common.stat_live import RunningStatFilter
-from common.transformations.camera import tici_d_frame_size
+from openpilot.common.numpy_fast import interp
+from openpilot.common.realtime import DT_DMON
+from openpilot.common.filter_simple import FirstOrderFilter
+from openpilot.common.stat_live import RunningStatFilter
+from openpilot.common.transformations.camera import tici_d_frame_size
 
 EventName = car.CarEvent.EventName
 
@@ -119,7 +119,9 @@ class DriverBlink():
     self.right_blink = 0.
 
 class DriverStatus():
-  def __init__(self, rhd_saved=False, settings=DRIVER_MONITOR_SETTINGS()):
+  def __init__(self, rhd_saved=False, settings=None):
+    if settings is None:
+      settings = DRIVER_MONITOR_SETTINGS()
     # init policy settings
     self.settings = settings
 

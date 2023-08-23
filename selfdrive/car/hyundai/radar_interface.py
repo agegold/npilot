@@ -3,16 +3,16 @@ import math
 
 from cereal import car
 from opendbc.can.parser import CANParser
-from selfdrive.car.interfaces import RadarInterfaceBase
-from selfdrive.car.hyundai.values import DBC, CANFD_CAR
-from selfdrive.controls.neokii.cruise_state_manager import is_radar_disabler
+from openpilot.selfdrive.car.interfaces import RadarInterfaceBase
+from openpilot.selfdrive.car.hyundai.values import DBC, CANFD_CAR
+from openpilot.selfdrive.controls.neokii.cruise_state_manager import is_radar_point
 
 RADAR_START_ADDR = 0x500
 RADAR_MSG_COUNT = 32
 
 def get_radar_can_parser(CP):
 
-  if CP.carFingerprint in CANFD_CAR or is_radar_disabler(CP):
+  if CP.carFingerprint in CANFD_CAR or is_radar_point(CP):
 
     if DBC[CP.carFingerprint]['radar'] is None:
       return None
@@ -30,7 +30,7 @@ def get_radar_can_parser(CP):
 class RadarInterface(RadarInterfaceBase):
   def __init__(self, CP):
     super().__init__(CP)
-    self.new_radar = is_radar_disabler(CP)
+    self.new_radar = is_radar_point(CP)
     self.updated_messages = set()
     self.trigger_msg = 0x420 if not self.new_radar else RADAR_START_ADDR + RADAR_MSG_COUNT - 1
     self.track_id = 0

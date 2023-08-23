@@ -8,11 +8,11 @@ from functools import cached_property, lru_cache
 from pathlib import Path
 
 from cereal import log
-from common.gpio import gpio_set, gpio_init, get_irqs_for_action
-from system.hardware.base import HardwareBase, ThermalConfig
-from system.hardware.tici import iwlist
-from system.hardware.tici.pins import GPIO
-from system.hardware.tici.amplifier import Amplifier
+from openpilot.common.gpio import gpio_set, gpio_init, get_irqs_for_action
+from openpilot.system.hardware.base import HardwareBase, ThermalConfig
+from openpilot.system.hardware.tici import iwlist
+from openpilot.system.hardware.tici.pins import GPIO
+from openpilot.system.hardware.tici.amplifier import Amplifier
 
 NM = 'org.freedesktop.NetworkManager'
 NM_CON_ACT = NM + '.Connection.Active'
@@ -83,6 +83,17 @@ def affine_irq(val, action):
   for i in irqs:
     sudo_write(str(val), f"/proc/irq/{i}/smp_affinity_list")
 
+@lru_cache
+def get_device_type():
+  # lru_cache and cache can cause memory leaks when used in classes
+  with open("/sys/firmware/devicetree/base/model") as f:
+    model = f.read().strip('\x00')
+  model = model.split('comma ')[-1]
+  # TODO: remove this with AGNOS 7+
+  if model.startswith('Qualcomm'):
+    model = 'tici'
+  return model
+
 class Tici(HardwareBase):
   @cached_property
   def bus(self):
@@ -105,15 +116,8 @@ class Tici(HardwareBase):
     with open("/VERSION") as f:
       return f.read().strip()
 
-  @lru_cache
   def get_device_type(self):
-    with open("/sys/firmware/devicetree/base/model") as f:
-      model = f.read().strip('\x00')
-    model = model.split('comma ')[-1]
-    # TODO: remove this with AGNOS 7+
-    if model.startswith('Qualcomm'):
-      model = 'tici'
-    return model
+    return get_device_type()
 
   def get_sound_card_online(self):
     if os.path.isfile('/proc/asound/card0/state'):

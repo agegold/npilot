@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 from opendbc.can.parser import CANParser
 from cereal import car
-from selfdrive.car.toyota.values import DBC, TSS2_CAR
-from selfdrive.car.interfaces import RadarInterfaceBase
+from openpilot.selfdrive.car.toyota.values import DBC, TSS2_CAR
+from openpilot.selfdrive.car.interfaces import RadarInterfaceBase
 
 
 def _create_radar_can_parser(car_fingerprint):
@@ -15,7 +15,7 @@ def _create_radar_can_parser(car_fingerprint):
 
   msg_a_n = len(RADAR_A_MSGS)
   msg_b_n = len(RADAR_B_MSGS)
-  messages = list(zip(RADAR_A_MSGS + RADAR_B_MSGS, [20] * (msg_a_n + msg_b_n)))
+  messages = list(zip(RADAR_A_MSGS + RADAR_B_MSGS, [20] * (msg_a_n + msg_b_n), strict=True))
 
   return CANParser(DBC[car_fingerprint]['radar'], messages, 1)
 

@@ -6,9 +6,8 @@ import threading
 from threading import Thread
 
 from cereal import messaging
-from common.realtime import Ratekeeper
-from selfdrive.navd.helpers import Coordinate
-from common.params import Params
+from openpilot.common.realtime import Ratekeeper
+from openpilot.selfdrive.navd.helpers import Coordinate
 
 ROUTE_RECEIVE_PORT = 2845
 
@@ -110,7 +109,6 @@ class NaviRoute():
         if not chunk:
           break
         data += chunk
-
       return data
 
     def handle(self):
@@ -120,6 +118,9 @@ class NaviRoute():
         try:
           length = struct.unpack(">I", length_bytes)[0]
           if length >= 4:
+            if length > 1024*1024*10:
+              raise Exception
+
             self.server.navi_route.last_client_address = self.client_address[0]
 
             type_bytes = self.recv(4)
@@ -132,8 +133,9 @@ class NaviRoute():
 
               if count > 0:
                 for i in range(count):
-                  lat = struct.unpack(">f", data[i * 8:i * 8 + 4])[0]
-                  lon = struct.unpack(">f", data[i * 8 + 4:i * 8 + 8])[0]
+                  offset = i * 8
+                  lat = struct.unpack(">f", data[offset:offset+4])[0]
+                  lon = struct.unpack(">f", data[offset+4:offset+8])[0]
 
                   coord = Coordinate.from_mapbox_tuple((lon, lat))
                   routes.append(coord)
