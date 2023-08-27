@@ -1,5 +1,6 @@
 #include "selfdrive/ui/qt/maps/map.h"
 
+#include <algorithm>
 #include <eigen3/Eigen/Dense>
 
 #include <QDebug>
@@ -14,11 +15,11 @@ const int INTERACTION_TIMEOUT = 100;
 
 const float MAX_ZOOM = 17;
 const float MIN_ZOOM = 14;
-const float MAX_PITCH = 60;
-const float MIN_PITCH = 60;
+const float MAX_PITCH = 50;
+const float MIN_PITCH = 0;
 const float MAP_SCALE = 2;
 
-MapWindow::MapWindow(const QMapboxGLSettings &settings) : m_settings(settings), velocity_filter(0, 10, 0.05) {
+MapWindow::MapWindow(const QMapboxGLSettings &settings) : m_settings(settings), velocity_filter(0, 10, 0.05, false) {
   QObject::connect(uiState(), &UIState::uiUpdate, this, &MapWindow::updateState);
 
   map_overlay = new QWidget (this);
@@ -151,7 +152,7 @@ void MapWindow::updateState(const UIState &s) {
     if (locationd_valid) {
       last_position = QMapbox::Coordinate(locationd_pos.getValue()[0], locationd_pos.getValue()[1]);
       last_bearing = RAD2DEG(locationd_orientation.getValue()[2]);
-      velocity_filter.update(locationd_velocity.getValue()[0]);
+      velocity_filter.update(std::max(10.0, locationd_velocity.getValue()[0]));
     }
   }
 
@@ -191,6 +192,11 @@ void MapWindow::updateState(const UIState &s) {
     carPosSource["type"] = "geojson";
     carPosSource["data"] = QVariant::fromValue<QMapbox::Feature>(feature1);
     m_map->updateSource("carPosSource", carPosSource);
+
+    // Map bearing isn't updated when interacting, keep location marker up to date
+    if (last_bearing) {
+      m_map->setLayoutProperty("carPosLayer", "icon-rotate", *last_bearing - m_map->bearing());
+    }
   }
 
   if (interaction_counter == 0) {
@@ -261,8 +267,7 @@ void MapWindow::initializeGL() {
 
   m_map->setMargins({0, 350, 0, 50});
   m_map->setPitch(MIN_PITCH);
-  //m_map->setStyleUrl("mapbox://styles/commaai/clkqztk0f00ou01qyhsa5bzpj");
-  m_map->setStyleUrl("mapbox://styles/neokii/clln2h0yb000201qxe4s7bom9");
+  m_map->setStyleUrl("mapbox://styles/commaai/clkqztk0f00ou01qyhsa5bzpj");
 
   QObject::connect(m_map.data(), &QMapboxGL::mapChanged, [=](QMapboxGL::MapChange change) {
     // set global animation duration to 0 ms so visibility changes are instant

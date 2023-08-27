@@ -50,7 +50,7 @@ class CarControllerParams:
 
     # Default for most HKG
     else:
-      self.STEER_MAX = 409
+      self.STEER_MAX = 384
 
 
 class HyundaiFlags(IntFlag):
@@ -2085,7 +2085,7 @@ DBC = {
 
 
 # community
-from selfdrive.car.hyundai import values_community
+from openpilot.selfdrive.car.hyundai import values_community
 
 FINGERPRINTS = {**FINGERPRINTS, **values_community.FINGERPRINTS}
 FW_VERSIONS = {**FW_VERSIONS, **values_community.FW_VERSIONS}
