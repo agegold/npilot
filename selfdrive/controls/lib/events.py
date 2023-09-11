@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import math
 import os
 from enum import IntEnum
@@ -575,11 +576,9 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
     ET.PERMANENT: NormalPermanentAlert("GPS 작동 오류", "하드웨어를 점검하세요"),
   },
 
-  # When the GPS position and localizer diverge the localizer is reset to the
-  # current GPS position. This alert is thrown when the localizer is reset
-  # more often than expected.
   EventName.localizerMalfunction: {
-    # ET.PERMANENT: NormalPermanentAlert("센서 오류", "하드웨어를 점검하세요"),
+    ET.NO_ENTRY: NoEntryAlert("로컬라이저 오류"),
+    ET.SOFT_DISABLE: soft_disable_alert("로컬라이저 오류"), 
   },
 
   # ********** events that affect controls state transitions **********
