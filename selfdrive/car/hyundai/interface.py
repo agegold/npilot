@@ -80,7 +80,11 @@ class CarInterface(CarInterfaceBase):
     ret.steerLimitTimer = 0.4
     CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
 
-    if candidate in (CAR.SANTA_FE, CAR.SANTA_FE_2022, CAR.SANTA_FE_HEV_2022, CAR.SANTA_FE_PHEV_2022):
+    if candidate == CAR.AZERA_6TH_GEN:
+      ret.mass = 1540.  # average
+      ret.wheelbase = 2.885
+      ret.steerRatio = 14.5
+    elif candidate in (CAR.SANTA_FE, CAR.SANTA_FE_2022, CAR.SANTA_FE_HEV_2022, CAR.SANTA_FE_PHEV_2022):
       ret.mass = 3982. * CV.LB_TO_KG
       ret.wheelbase = 2.766
       # Values from optimizer
@@ -243,14 +247,14 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 2087.
       ret.wheelbase = 3.09
       ret.steerRatio = 14.23
-    elif candidate in (CAR.KIA_K8, CAR.KIA_K8_HYBRID):
-      ret.wheelbase = 2.89
-      ret.steerRatio = 13.5  # average of the platforms
-      if candidate == CAR.KIA_K8_HYBRID:
-        ret.mass = 1630
-      else:
-        ret.mass = 1540
-
+    elif candidate == CAR.KIA_K8_HEV_1ST_GEN:
+      ret.mass = 1630.  # https://carprices.ae/brands/kia/2023/k8/1.6-turbo-hybrid
+      ret.wheelbase = 2.895
+      ret.steerRatio = 13.27  # guesstimate from K5 platform
+    elif candidate == CAR.KIA_K8:
+      ret.mass = 1540.
+      ret.wheelbase = 2.895
+      ret.steerRatio = 13.27  # guesstimate from K5 platform
 
     # Genesis
     elif candidate == CAR.GENESIS_GV60_EV_1ST_GEN:
