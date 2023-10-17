@@ -168,19 +168,19 @@ class CarInterface(CarInterfaceBase):
       ret.wheelbase = 3.055
       ret.steerRatio = 17.0  # from learner
     elif candidate == CAR.STARIA:
-      ret.mass = 2280. + STD_CARGO_KG  
+      ret.mass = 2280.  
       ret.wheelbase = 3.275
       ret.steerRatio = 14.2
     elif candidate == CAR.CASPER:
-      ret.mass = 985. + STD_CARGO_KG
+      ret.mass = 985.
       ret.wheelbase = 2.40
       ret.steerRatio = 14.2
     elif candidate == CAR.GRANDEUR_GN7:
-      ret.mass = 1620. + STD_CARGO_KG
+      ret.mass = 1620.
       ret.wheelbase = 2.895
       ret.steerRatio = 14.2
     elif candidate == CAR.GRANDEUR_GN7_HYBRID:
-      ret.mass = 1700. + STD_CARGO_KG
+      ret.mass = 1700.
       ret.wheelbase = 2.895
       ret.steerRatio = 14.2
 
