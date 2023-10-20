@@ -248,7 +248,7 @@ CAR_INFO: Dict[str, Optional[Union[HyundaiCarInfo, List[HyundaiCarInfo]]]] = {
   CAR.CUSTIN_1ST_GEN: HyundaiCarInfo("Hyundai Custin 2023", "All", car_parts=CarParts.common([CarHarness.hyundai_k])),
   CAR.STARIA: HyundaiCarInfo("Hyundai STARIA 2022", car_parts=CarParts.common([CarHarness.hyundai_a])),
   CAR.CASPER: HyundaiCarInfo("Hyundai CASPER 2022", car_parts=CarParts.common([CarHarness.hyundai_n])),
-  CAR.GRANDEUR_GN7: HyundaiCarInfo("Hyundai GRANDEUR_GN7 2023", car_parts=CarParts.common([CarHarness.hyundai_n])),
+  CAR.GRANDEUR_GN7: HyundaiCarInfo("Hyundai GRANDEUR_GN7 2023", car_parts=CarParts.common([CarHarness.hyundai_m])),
   CAR.GRANDEUR_GN7_HYBRID: HyundaiCarInfo("Hyundai GRANDEUR_GN7_HYBRID 2023", car_parts=CarParts.common([CarHarness.hyundai_n])),
 	
   # Kia
