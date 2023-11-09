@@ -208,7 +208,6 @@ static int hyundai_rx_hook(CANPacket_t *to_push) {
   if (valid && (bus == 0)) {
     if (addr == 593) {
       int torque_driver_new = ((int)(GET_BYTES(to_push, 0, 4) & 0x7ffU) - 982) * 0.4;
-      // update array of samples
       update_sample(&torque_driver, torque_driver_new);
     }
 
