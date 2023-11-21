@@ -37,7 +37,7 @@ X_EGO_COST = 0.
 V_EGO_COST = 0.
 A_EGO_COST = 0.
 J_EGO_COST = 5.0
-A_CHANGE_COST = 100. # 200.
+A_CHANGE_COST = 200.
 DANGER_ZONE_COST = 100.
 CRASH_DISTANCE = .25
 LEAD_DANGER_FACTOR = 0.75
@@ -68,7 +68,7 @@ def get_jerk_factor(personality=log.LongitudinalPersonality.standard):
   if personality==log.LongitudinalPersonality.relaxed:
     return 1.0
   elif personality==log.LongitudinalPersonality.standard:
-    return 0.75
+    return 1.0
   elif personality==log.LongitudinalPersonality.aggressive:
     return 0.5
   else:
@@ -388,10 +388,6 @@ class LongitudinalMpc:
     # Update in ACC mode or ACC/e2e blend
     if self.mode == 'acc':
       self.params[:,5] = LEAD_DANGER_FACTOR
-      if self.status:
-        d_rel = radarstate.leadOne.dRel if radarstate.leadOne.status else radarstate.leadTwo.dRel
-        self.params[:, 5] = interp(d_rel, [STOP_DISTANCE, 20], [1.0, 0.7])
-
       # Fake an obstacle for cruise, this ensures smooth acceleration to set speed
       # when the leads are no factor.
       v_lower = v_ego + (T_IDXS * self.cruise_min_a * 1.05)
