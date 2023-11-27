@@ -172,6 +172,11 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 1700.
       ret.wheelbase = 2.895
       ret.steerRatio = 14.2
+    elif candidate == CAR.IONIQ_5N:
+      ret.mass = 2200
+      ret.wheelbase = 3.0
+      ret.steerRatio = 14.26
+      ret.tireStiffnessFactor = 0.65
 
     # Kia
     elif candidate == CAR.KIA_SORENTO:
