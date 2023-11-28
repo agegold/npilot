@@ -126,7 +126,9 @@ class CAR(StrEnum):
   KIA_EV6 = "KIA EV6 2022"
   KIA_CARNIVAL_4TH_GEN = "KIA CARNIVAL 4TH GEN"
   KIA_K8 = "KIA K8"
-
+  KIA_K5_2024 = "KIA K5 2024"
+  KIA_K5_HEV_2024 = "KIA K5 HYBRID 2024"
+	
   # Genesis
   GENESIS_GV60_EV_1ST_GEN = "GENESIS GV60 ELECTRIC 1ST GEN"
   GENESIS_G70 = "GENESIS G70 2018"
@@ -301,6 +303,9 @@ CAR_INFO: Dict[str, Optional[Union[HyundaiCarInfo, List[HyundaiCarInfo]]]] = {
     HyundaiCarInfo("Kia Carnival (China only) 2023", car_parts=CarParts.common([CarHarness.hyundai_k]))
   ],
   CAR.KIA_K8: HyundaiCarInfo("Kia K8 2022", "All", car_parts=CarParts.common([CarHarness.hyundai_m])),
+  CAR.KIA_K5_2024: HyundaiCarInfo("Kia K5 2024-", car_parts=CarParts.common([CarHarness.hyundai_a])),
+  CAR.KIA_K5_HEV_2024: HyundaiCarInfo("Kia K5 Hybrid 2024-", car_parts=CarParts.common([CarHarness.hyundai_a])),
+
 
   # Genesis
   CAR.GENESIS_GV60_EV_1ST_GEN: [
@@ -604,7 +609,10 @@ CAR.ELANTRA_GT_I30: [{
   }],
   CAR.IONIQ_5N: [{
   }],
-
+  CAR.KIA_K5_2024: [{
+  }],
+  CAR.KIA_K5_HEV_2024: [{
+  }],
 }
 
 
@@ -2345,14 +2353,15 @@ CANFD_CAR = {CAR.KIA_EV6, CAR.IONIQ_5, CAR.IONIQ_6, CAR.TUCSON_4TH_GEN, CAR.TUCS
              CAR.GENESIS_GV60_EV_1ST_GEN, CAR.KIA_SORENTO_4TH_GEN, CAR.KIA_NIRO_HEV_2ND_GEN, CAR.KIA_NIRO_EV_2ND_GEN,
              CAR.GENESIS_GV80, CAR.KIA_CARNIVAL_4TH_GEN, CAR.KIA_SORENTO_HEV_4TH_GEN, CAR.KONA_EV_2ND_GEN,CAR.KIA_K8_HEV_1ST_GEN,
              CAR.GENESIS_EGV70, CAR.GENESIS_G80_RG3, CAR.GENESIS_EG80_RG3,CAR.KIA_K8, CAR.STARIA,
-	         CAR.GRANDEUR_GN7, CAR.GRANDEUR_GN7_HYBRID, CAR.IONIQ_5N}
+	         CAR.GRANDEUR_GN7, CAR.GRANDEUR_GN7_HYBRID, CAR.IONIQ_5N, CAR.KIA_K5_2024, CAR.KIA_K5_HEV_2024}
 CANFD_HDA2_CAR = {CAR.GENESIS_GV80,}
 CANFD_HDA2_ALT_GEARS = {CAR.GENESIS_GV80}
 
 # The radar does SCC on these cars when HDA I, rather than the camera
 CANFD_RADAR_SCC_CAR = {CAR.GENESIS_GV70_1ST_GEN, CAR.KIA_SORENTO_PHEV_4TH_GEN, CAR.KIA_SORENTO_4TH_GEN, CAR.GENESIS_GV80,
 		               CAR.KIA_CARNIVAL_4TH_GEN, CAR.KIA_SORENTO_HEV_4TH_GEN, CAR.KONA_EV_2ND_GEN, CAR.IONIQ_6,
-    		           CAR.GENESIS_G80_RG3, CAR.GENESIS_EG80_RG3, CAR.KIA_K8, CAR.GRANDEUR_GN7_HYBRID, CAR.IONIQ_5N}
+    		           CAR.GENESIS_G80_RG3, CAR.GENESIS_EG80_RG3, CAR.KIA_K8, CAR.GRANDEUR_GN7_HYBRID, CAR.IONIQ_5N,
+		      CAR.KIA_K5_2024, CAR.KIA_K5_HEV_2024}
 					   
 # These CAN FD cars do not accept communication control to disable the ADAS ECU,
 # responds with 0x7F2822 - 'conditions not correct'
@@ -2368,7 +2377,7 @@ HYBRID_CAR = {CAR.IONIQ_PHEV, CAR.ELANTRA_HEV_2021, CAR.KIA_NIRO_PHEV, CAR.KIA_N
               CAR.KIA_SORENTO_HEV_4TH_GEN, CAR.KIA_OPTIMA_H, CAR.KIA_OPTIMA_H_G4_FL, CAR.KIA_K8_HEV_1ST_GEN,
               CAR.AZERA_HEV_6TH_GEN,
               CAR.GRANDEUR_IG_HEV, CAR.GRANDEUR_IG_FL_HEV, CAR.K5_HEV, CAR.K5_HEV_2022, CAR.K7_HEV,
-              CAR.GRANDEUR_GN7_HYBRID}
+              CAR.GRANDEUR_GN7_HYBRID, CAR.KIA_K5_HEV_2024}
 
 EV_CAR = {CAR.IONIQ_EV_2020, CAR.IONIQ_EV_LTD, CAR.KONA_EV, CAR.KIA_NIRO_EV, CAR.KIA_NIRO_EV_2ND_GEN, CAR.KONA_EV_2022,
           CAR.KIA_EV6, CAR.IONIQ_5, CAR.IONIQ_6, CAR.GENESIS_GV60_EV_1ST_GEN, CAR.KONA_EV_2ND_GEN,
@@ -2485,6 +2494,8 @@ DBC = {
   CAR.GRANDEUR_GN7: dbc_dict('hyundai_canfd', None),
   CAR.GRANDEUR_GN7_HYBRID: dbc_dict('hyundai_canfd', None),
   CAR.IONIQ_5N: dbc_dict('hyundai_canfd', None),
+  CAR.KIA_K5_2024: dbc_dict('hyundai_canfd', None),
+  CAR.KIA_K5_HEV_2024: dbc_dict('hyundai_canfd', None),
 }
 
 def main():
