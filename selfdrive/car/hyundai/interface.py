@@ -266,6 +266,10 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 1540.
       ret.wheelbase = 2.895
       ret.steerRatio = 13.27  # guesstimate from K5 platform
+    elif candidate == CAR.KIA_EV9:
+      ret.mass = 2550.
+      ret.wheelbase = 3.100
+      ret.steerRatio = 16.02
 
     # Genesis
     elif candidate == CAR.GENESIS_GV60_EV_1ST_GEN:
