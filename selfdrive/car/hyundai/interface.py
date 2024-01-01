@@ -269,6 +269,10 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 2087.
       ret.wheelbase = 3.09
       ret.steerRatio = 14.23
+    elif candidate == CAR.KIA_CARNIVAL_HEV_4TH_GEN:
+      ret.mass = 2087.
+      ret.wheelbase = 3.09
+      ret.steerRatio = 14.23
     elif candidate == CAR.KIA_K8_HEV_1ST_GEN:
       ret.mass = 1630.  # https://carprices.ae/brands/kia/2023/k8/1.6-turbo-hybrid
       ret.wheelbase = 2.895
