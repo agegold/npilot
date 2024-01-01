@@ -270,7 +270,7 @@ class CarInterface(CarInterfaceBase):
       ret.wheelbase = 3.09
       ret.steerRatio = 14.23
     elif candidate == CAR.KIA_CARNIVAL_HEV_4TH_GEN:
-      ret.mass = 2087.
+      ret.mass = 2165.
       ret.wheelbase = 3.09
       ret.steerRatio = 14.23
     elif candidate == CAR.KIA_K8_HEV_1ST_GEN:
