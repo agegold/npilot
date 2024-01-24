@@ -58,7 +58,6 @@ services: dict[str, tuple] = {
   "liveLocationKalman": (True, 20., 5),
   "liveParameters": (True, 20., 5),
   "cameraOdometry": (True, 20., 5),
-  "lateralPlan": (True, 20., 5),
   "thumbnail": (True, 0.2, 1),
   "onroadEvents": (True, 1., 1),
   "carParams": (True, 0.02, 1),
@@ -81,7 +80,8 @@ services: dict[str, tuple] = {
   "qRoadEncodeIdx": (False, 20.),
   "userFlag": (True, 0., 1),
   "microphone": (True, 10., 10),
-  
+
+  "lateralLanePlan": (False, 20., 5),
   "naviData": (False, 0.),
 
   # debug

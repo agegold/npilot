@@ -425,15 +425,15 @@ void USB_WritePacket_EP0(uint8_t *src, uint16_t len) {
 
 void usb_reset(void) {
   // unmask endpoint interrupts, so many sets
-  USBx_DEVICE->DAINT = 0xFFFFFFFF;
-  USBx_DEVICE->DAINTMSK = 0xFFFFFFFF;
+  USBx_DEVICE->DAINT = 0xFFFFFFFFU;
+  USBx_DEVICE->DAINTMSK = 0xFFFFFFFFU;
   //USBx_DEVICE->DOEPMSK = (USB_OTG_DOEPMSK_STUPM | USB_OTG_DOEPMSK_XFRCM | USB_OTG_DOEPMSK_EPDM);
   //USBx_DEVICE->DIEPMSK = (USB_OTG_DIEPMSK_TOM | USB_OTG_DIEPMSK_XFRCM | USB_OTG_DIEPMSK_EPDM | USB_OTG_DIEPMSK_ITTXFEMSK);
   //USBx_DEVICE->DIEPMSK = (USB_OTG_DIEPMSK_TOM | USB_OTG_DIEPMSK_XFRCM | USB_OTG_DIEPMSK_EPDM);
 
   // all interrupts for debugging
-  USBx_DEVICE->DIEPMSK = 0xFFFFFFFF;
-  USBx_DEVICE->DOEPMSK = 0xFFFFFFFF;
+  USBx_DEVICE->DIEPMSK = 0xFFFFFFFFU;
+  USBx_DEVICE->DOEPMSK = 0xFFFFFFFFU;
 
   // clear interrupts
   USBx_INEP(0)->DIEPINT = 0xFF;
@@ -563,7 +563,7 @@ void usb_setup(void) {
                 // 96 bits = 12 bytes
                 for (int i = 0; i < 12; i++){
                   uint8_t cc = ((uint8_t *)UID_BASE)[i];
-                  resp[2 + (i * 4) + 0] = to_hex_char((cc >> 4) & 0xFU);
+                  resp[2 + (i * 4)] = to_hex_char((cc >> 4) & 0xFU);
                   resp[2 + (i * 4) + 1] = '\0';
                   resp[2 + (i * 4) + 2] = to_hex_char((cc >> 0) & 0xFU);
                   resp[2 + (i * 4) + 3] = '\0';
