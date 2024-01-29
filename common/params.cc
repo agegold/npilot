@@ -95,6 +95,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"AthenadPid", PERSISTENT},
     {"AthenadUploadQueue", PERSISTENT},
     {"AthenadRecentlyViewedRoutes", PERSISTENT},
+    {"BootCount", PERSISTENT},
     {"CalibrationParams", PERSISTENT},
     {"CameraDebugExpGain", CLEAR_ON_MANAGER_START},
     {"CameraDebugExpTime", CLEAR_ON_MANAGER_START},
@@ -211,7 +212,6 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"MapboxToken", PERSISTENT},
     {"SupportedCars", PERSISTENT},
     {"SelectedCar", PERSISTENT},
-    {"UseLanelines", PERSISTENT},
     {"SccOnBus2", PERSISTENT},
     {"CruiseStateControl", PERSISTENT},
     {"SccGapAdjust", PERSISTENT},
@@ -220,6 +220,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"UseExternalNaviRoutes", PERSISTENT},
     {"ShowDebugMessage", PERSISTENT},
     {"EnableLogging", PERSISTENT},
+    {"DriverCameraOnReverse", PERSISTENT},
 };
 
 } // namespace

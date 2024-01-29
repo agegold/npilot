@@ -102,7 +102,7 @@ RxCheck hyundai_legacy_rx_checks[] = {
 bool hyundai_legacy = false;
 
 
-static uint8_t hyundai_get_counter(CANPacket_t *to_push) {
+static uint8_t hyundai_get_counter(const CANPacket_t *to_push) {
   int addr = GET_ADDR(to_push);
 
   uint8_t cnt = 0;
@@ -121,7 +121,7 @@ static uint8_t hyundai_get_counter(CANPacket_t *to_push) {
   return cnt;
 }
 
-static uint32_t hyundai_get_checksum(CANPacket_t *to_push) {
+static uint32_t hyundai_get_checksum(const CANPacket_t *to_push) {
   int addr = GET_ADDR(to_push);
 
   uint8_t chksum = 0;
@@ -138,7 +138,7 @@ static uint32_t hyundai_get_checksum(CANPacket_t *to_push) {
   return chksum;
 }
 
-static uint32_t hyundai_compute_checksum(CANPacket_t *to_push) {
+static uint32_t hyundai_compute_checksum(const CANPacket_t *to_push) {
   int addr = GET_ADDR(to_push);
 
   uint8_t chksum = 0;
@@ -174,7 +174,7 @@ static uint32_t hyundai_compute_checksum(CANPacket_t *to_push) {
   return chksum;
 }
 
-static void hyundai_rx_hook(CANPacket_t *to_push) {
+static void hyundai_rx_hook(const CANPacket_t *to_push) {
   int bus = GET_BUS(to_push);
   int addr = GET_ADDR(to_push);
 
@@ -243,7 +243,7 @@ uint32_t last_ts_scc12_from_op = 0;
 uint32_t last_ts_mdps12_from_op = 0;
 uint32_t last_ts_fca11_from_op = 0;
 
-static bool hyundai_tx_hook(CANPacket_t *to_send) {
+static bool hyundai_tx_hook(const CANPacket_t *to_send) {
   bool tx = true;
   int addr = GET_ADDR(to_send);
 
@@ -337,7 +337,7 @@ static int hyundai_fwd_hook(int bus_num, int addr) {
     bool is_scc_msg = addr == 1056 || addr == 1057 || addr == 1290 || addr == 905;
     bool is_fca_msg = addr == 909 || addr == 1155;
 
-    bool block_msg = is_lkas_msg || is_lfahda_msg || is_scc_msg; //|| is_fca_msg;
+    bool block_msg = is_lkas_msg || is_lfahda_msg || is_scc_msg || is_fca_msg;
     if (!block_msg) {
       bus_fwd = 0;
     }

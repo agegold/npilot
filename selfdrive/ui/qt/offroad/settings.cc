@@ -392,7 +392,6 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
   // setup two main layouts
   sidebar_widget = new QWidget;
   QVBoxLayout *sidebar_layout = new QVBoxLayout(sidebar_widget);
-  sidebar_layout->setMargin(0);
   panel_widget = new QStackedWidget();
 
   // close button
@@ -534,13 +533,7 @@ CommunityPanel::CommunityPanel(SettingsWindow *parent) : ListWidget(parent) {
   addItem(changeCar);
 
   // param, title, desc, icon
-  std::vector<std::tuple<QString, QString, QString, QString>> toggle_defs{
-    {
-      "UseLanelines",
-      tr("Use lane lines instead of e2e"),
-      "",
-      "../assets/offroad/icon_openpilot.png",
-    },
+  std::vector<std::tuple<QString, QString, QString, QString>> toggle_defs {
     {
       "SccOnBus2",
       tr("SCC on BUS 2"),
@@ -578,6 +571,12 @@ CommunityPanel::CommunityPanel(SettingsWindow *parent) : ListWidget(parent) {
       "",
       "../assets/offroad/icon_shell.png",
     },
+    {
+      "DriverCameraOnReverse",
+      tr("Driver Camera On Reverse"),
+      tr("Displays the driver camera when in reverse."),
+      "../assets/img_driver_face_static.png",
+      },
   };
 
   for (auto &[param, title, desc, icon] : toggle_defs) {
