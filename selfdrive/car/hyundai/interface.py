@@ -207,6 +207,10 @@ class CarInterface(CarInterfaceBase):
       ret.wheelbase = 3.0
       ret.steerRatio = 14.26
       ret.tireStiffnessFactor = 0.65
+    elif candidate == CAR.SONATA_HEV_LF:
+      ret.mass = 1595
+      ret.wheelbase = 2.804
+      ret.steerRatio = 13.27 * 1.15   # 15% higher at the center seems reasonable
 
     # Kia
     elif candidate == CAR.KIA_SORENTO:
