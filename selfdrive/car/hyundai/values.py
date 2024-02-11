@@ -160,6 +160,8 @@ class CAR(StrEnum):
   K7 = "KIA K7 2016-2019"
   K7_HEV = "KIA K7 HEV 2016-2019"
   K9 = "KIA K9 2016-2019"
+  SONATA_HEV_LF = "HYUNDAI SONATA HYBRID (LF)"
+
 
 
 class Footnote(Enum):
@@ -253,6 +255,8 @@ CAR_INFO: Dict[str, Optional[Union[HyundaiCarInfo, List[HyundaiCarInfo]]]] = {
   CAR.GRANDEUR_GN7: HyundaiCarInfo("Hyundai GRANDEUR_GN7 2023", car_parts=CarParts.common([CarHarness.hyundai_m])),
   CAR.GRANDEUR_GN7_HYBRID: HyundaiCarInfo("Hyundai GRANDEUR_GN7_HYBRID 2023", car_parts=CarParts.common([CarHarness.hyundai_n])),
   CAR.IONIQ_5N : HyundaiCarInfo("Hyundai IONIQ_5N 2023", car_parts=CarParts.common([CarHarness.hyundai_n])),
+  CAR.SONATA_HEV_LF: HyundaiCarInfo("Hyundai LF Sonata Hybrid", car_parts=CarParts.common([CarHarness.hyundai_a])),
+
 	
   # Kia
   CAR.KIA_FORTE: [
@@ -593,7 +597,7 @@ HYBRID_CAR = {CAR.IONIQ_PHEV, CAR.ELANTRA_HEV_2021, CAR.KIA_NIRO_PHEV, CAR.KIA_N
               CAR.IONIQ_HEV_2022, CAR.SANTA_FE_HEV_2022, CAR.SANTA_FE_PHEV_2022, CAR.IONIQ_PHEV_2019, CAR.KIA_K5_HEV_2020,
               CAR.KIA_OPTIMA_H, CAR.KIA_OPTIMA_H_G4_FL, CAR.AZERA_HEV_6TH_GEN, CAR.KIA_NIRO_PHEV_2022,
               CAR.GRANDEUR_IG_HEV, CAR.GRANDEUR_IG_FL_HEV, CAR.K5_HEV, CAR.K5_HEV_2022, CAR.K7_HEV,
-              CAR.KIA_K8_HEV_1ST_GEN, CAR.GRANDEUR_GN7_HYBRID, CAR.KIA_K5_HEV_2024, CAR.KIA_CARNIVAL_HEV_4TH_GEN}
+              CAR.KIA_K8_HEV_1ST_GEN, CAR.GRANDEUR_GN7_HYBRID, CAR.KIA_K5_HEV_2024, CAR.KIA_CARNIVAL_HEV_4TH_GEN, CAR.SONATA_HEV_LF}
 
 EV_CAR = {CAR.IONIQ_EV_2020, CAR.IONIQ_EV_LTD, CAR.KONA_EV, CAR.KIA_NIRO_EV, CAR.KIA_NIRO_EV_2ND_GEN, CAR.KONA_EV_2022,
           CAR.KIA_EV6, CAR.IONIQ_5, CAR.IONIQ_6, CAR.GENESIS_GV60_EV_1ST_GEN, CAR.KONA_EV_2ND_GEN,
@@ -683,6 +687,7 @@ DBC = {
   CAR.STARIA_4TH_GEN: dbc_dict('hyundai_canfd', None),
 
   # Community
+  CAR.SONATA_HEV_LF: dbc_dict('hyundai_kia_generic', None),
   CAR.GRANDEUR_IG: dbc_dict('hyundai_kia_generic', None),
   CAR.GRANDEUR_IG_HEV: dbc_dict('hyundai_kia_generic', None),
   CAR.GRANDEUR_IG_FL: dbc_dict('hyundai_kia_generic', None),
