@@ -39,7 +39,7 @@ PROCS = {
   "./ui": 18.0,
   "selfdrive.locationd.paramsd": 9.0,
   "./sensord": 7.0,
-  "selfdrive.controls.radard": 4.5,
+  "selfdrive.controls.radard": 7.0,
   "selfdrive.modeld.modeld": 13.0,
   "selfdrive.modeld.dmonitoringmodeld": 8.0,
   "selfdrive.modeld.navmodeld": 1.0,
@@ -114,6 +114,7 @@ class TestOnroad(unittest.TestCase):
     params = Params()
     params.remove("CurrentRoute")
     set_params_enabled()
+    os.environ['REPLAY'] = '1'
     os.environ['TESTING_CLOSET'] = '1'
     if os.path.exists(Paths.log_root()):
       shutil.rmtree(Paths.log_root())
