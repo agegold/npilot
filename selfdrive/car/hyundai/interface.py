@@ -474,6 +474,8 @@ class CarInterface(CarInterfaceBase):
   def create_buttons(self, button):
 
     if self.CP.carFingerprint in CANFD_CAR:
+      if self.CP.flags & HyundaiFlags.CANFD_ALT_BUTTONS:
+        return self.create_buttons_can_fd_alt(button)
       return self.create_buttons_can_fd(button)
     else:
       return self.create_buttons_can(button)
@@ -494,3 +496,6 @@ class CarInterface(CarInterfaceBase):
       "CRUISE_BUTTONS": button,
     }
     return self.CC.packer.make_can_msg("CRUISE_BUTTONS", 5, values)
+
+  def create_buttons_can_fd_alt(self, button):
+    return None
