@@ -222,7 +222,6 @@ static void update_state(UIState *s) {
     scene.show_driver_camera = scene.driver_camera && carState.getGearShifter() == cereal::CarState::GearShifter::REVERSE;
   }
 
-    scene.forceGearD = params.getBool("JustDoGearD");
 
 
 }
@@ -232,6 +231,8 @@ void ui_update_params(UIState *s) {
   s->scene.is_metric = params.getBool("IsMetric");
   s->scene.map_on_left = params.getBool("NavSettingLeftSide");
   s->scene.driver_camera = params.getBool("DriverCameraOnReverse");
+  s->scene.forceGearD = params.getBool("JustDoGearD");
+
 }
 
 void UIState::updateStatus() {
