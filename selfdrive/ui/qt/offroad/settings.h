@@ -124,3 +124,16 @@ private:
 
   void updateToggles();
 };
+
+class GearDToggle : public ToggleControl {
+  Q_OBJECT
+
+public:
+  GearDToggle() : ToggleControl(tr("Set DriverGear by Force"), tr("It is used when the gear recognition problem. Basically, CABANA data should be analyzed, but it is temporarily resolved."), "../assets/offroad/icon_shell.png", Params().getBool("JustDoGearD")) {
+    QObject::connect(this, &GearDToggle::toggleFlipped, [=](int state) {
+      bool status = state ? true : false;
+      Params().putBool("JustDoGearD", status);
+    });
+  }
+};
+
