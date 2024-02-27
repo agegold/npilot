@@ -221,6 +221,12 @@ static void update_state(UIState *s) {
     const auto carState = sm["carState"].getCarState();
     scene.show_driver_camera = scene.driver_camera && carState.getGearShifter() == cereal::CarState::GearShifter::REVERSE;
   }
+  if (!scene.read_params_once) {
+    Params params;
+    // user param value init
+    scene.forceGearD = params.getBool("JustDoGearD");
+  }
+
 }
 
 void ui_update_params(UIState *s) {
