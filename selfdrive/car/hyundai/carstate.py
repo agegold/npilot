@@ -63,6 +63,9 @@ class CarState(CarStateBase):
     self.lfa_btn = 0
     self.lfa_enabled = False
 
+    self.gear_correction = Params().get_bool("JustDoGearD")
+
+
   def update(self, cp, cp_cam):
     if self.CP.carFingerprint in CANFD_CAR:
       return self.update_canfd(cp, cp_cam)
