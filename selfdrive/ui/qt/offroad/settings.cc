@@ -577,6 +577,8 @@ CommunityPanel::CommunityPanel(SettingsWindow *parent) : ListWidget(parent) {
       tr("Displays the driver camera when in reverse."),
       "../assets/img_driver_face_static.png",
       },
+  layout->addWidget(new GearDToggle());
+
   };
 
   for (auto &[param, title, desc, icon] : toggle_defs) {
