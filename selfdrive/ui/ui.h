@@ -167,6 +167,8 @@ typedef struct UIScene {
   bool driver_camera;
   bool show_driver_camera;
 
+  bool forceGearD;
+
 } UIScene;
 
 class UIState : public QObject {
