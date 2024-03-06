@@ -567,7 +567,7 @@ class CAR(Platforms):
   )
   KIA_CARNIVAL_4TH_GEN_HYBRID = HyundaiCanFDPlatformConfig(
     "KIA CARNIVAL 4TH GEN HYBRID ",   
-      HyundaiCarInfo("Kia Carnival HYBRID 2024", car_parts=CarParts.common([CarHarness.hyundai_a])),
+    HyundaiCarInfo("Kia Carnival HYBRID 2024", "All", car_parts=CarParts.common([CarHarness.hyundai_a])),
     CarSpecs(mass=2165, wheelbase=3.09, steerRatio=14.23),
     flags=HyundaiFlags.RADAR_SCC | HyundaiFlags.HYBRID,
   )
@@ -579,17 +579,13 @@ class CAR(Platforms):
   )
   KIA_K5_2024 = HyundaiCanFDPlatformConfig(
     "KIA K5 2024",
-    [
-      HyundaiCarInfo("KIA K5 2024", car_parts=CarParts.common([CarHarness.hyundai_a])),
-    ],
+    HyundaiCarInfo("KIA K5 2024", "All", car_parts=CarParts.common([CarHarness.hyundai_a])),
     CarSpecs(mass=1533, wheelbase=2.85, steerRatio=13.27),
     flags=HyundaiFlags.RADAR_SCC,
   )
   KIA_K5_2024_HYBRID = HyundaiCanFDPlatformConfig(
     "KIA K5 2024_HYBRID",
-    [
-      HyundaiCarInfo("KIA K5 2024_HYBRID", car_parts=CarParts.common([CarHarness.hyundai_a])),
-    ],
+    HyundaiCarInfo("KIA K5 2024_HYBRID", "All", car_parts=CarParts.common([CarHarness.hyundai_a])),
     CarSpecs(mass=1533, wheelbase=2.85, steerRatio=13.27),
     flags=HyundaiFlags.RADAR_SCC
   )
