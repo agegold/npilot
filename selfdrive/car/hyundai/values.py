@@ -566,10 +566,8 @@ class CAR(Platforms):
     flags=HyundaiFlags.RADAR_SCC,
   )
   KIA_CARNIVAL_4TH_GEN_HYBRID = HyundaiCanFDPlatformConfig(
-    "KIA CARNIVAL 4TH GEN HYBRID ",
-    [
+    "KIA CARNIVAL 4TH GEN HYBRID ",   
       HyundaiCarInfo("Kia Carnival HYBRID 2024", car_parts=CarParts.common([CarHarness.hyundai_a])),
-    ],
     CarSpecs(mass=2165, wheelbase=3.09, steerRatio=14.23),
     flags=HyundaiFlags.RADAR_SCC | HyundaiFlags.HYBRID,
   )
