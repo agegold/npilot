@@ -580,17 +580,17 @@ class CAR(Platforms):
     CarSpecs(mass=1630, wheelbase=2.895, steerRatio=13.27)
   )
   KIA_K5_2024 = HyundaiCanFDPlatformConfig(
-    "KIA_K5_2024",
+    "KIA K5 2024",
     [
-      HyundaiCarInfo("KIA_K5_2024", car_parts=CarParts.common([CarHarness.hyundai_a])),
+      HyundaiCarInfo("KIA K5 2024", car_parts=CarParts.common([CarHarness.hyundai_a])),
     ],
     CarSpecs(mass=1533, wheelbase=2.85, steerRatio=13.27),
     flags=HyundaiFlags.RADAR_SCC,
   )
   KIA_K5_2024_HYBRID = HyundaiCanFDPlatformConfig(
-    "KIA_K5_2024_HYBRID",
+    "KIA K5 2024_HYBRID",
     [
-      HyundaiCarInfo("KIA_K5_2024_HYBRID", car_parts=CarParts.common([CarHarness.hyundai_a])),
+      HyundaiCarInfo("KIA K5 2024_HYBRID", car_parts=CarParts.common([CarHarness.hyundai_a])),
     ],
     CarSpecs(mass=1533, wheelbase=2.85, steerRatio=13.27),
     flags=HyundaiFlags.RADAR_SCC
