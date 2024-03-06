@@ -645,9 +645,9 @@ class CAR(Platforms):
     CarSpecs(mass=2258, wheelbase=2.95, steerRatio=14.14),
     flags=HyundaiFlags.RADAR_SCC,
   )
-  GENESIS_G80 = HyundaiCanFDPlatformConfig(
-    "GENESIS G80 2023",
-    HyundaiCarInfo("Genesis G80 2023", "All", car_parts=CarParts.common([CarHarness.hyundai_m])),
+  GENESIS_G80_RG3 = HyundaiCanFDPlatformConfig(
+    "GENESIS G80 RG3 2023",
+    HyundaiCarInfo("Genesis G80 RG3 2023", "All", car_parts=CarParts.common([CarHarness.hyundai_m])),
     CarSpecs(mass=1785, wheelbase=3.01, steerRatio=16.5),
     flags=HyundaiFlags.RADAR_SCC,
   )
