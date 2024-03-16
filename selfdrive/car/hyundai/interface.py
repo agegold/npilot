@@ -41,6 +41,8 @@ class CarInterface(CarInterfaceBase):
     ret.dashcamOnly = candidate in {CAR.KIA_OPTIMA_H, }
 
     hda2 = Ecu.adas in [fw.ecu for fw in car_fw] or candidate == CAR.GENESIS_GV80_MR_MOON
+    hda2 = Ecu.adas in [fw.ecu for fw in car_fw] or candidate == CAR.GENESIS_GV70_1ST_GEN_HDA2
+
     CAN = CanBus(None, hda2, fingerprint)
 
     if candidate in CANFD_CAR:
