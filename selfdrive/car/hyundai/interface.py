@@ -57,6 +57,8 @@ class CarInterface(CarInterfaceBase):
           ret.flags |= HyundaiFlags.CANFD_HDA2_ALT_STEERING.value
         if candidate == CAR.GENESIS_GV80_MR_MOON:
           ret.flags |= HyundaiFlags.CANFD_ALT_GEARS.value
+        if candidate == CAR.GENESIS_GV70_1ST_GEN_HDA2:
+          ret.flags |= HyundaiFlags.CANFD_ALT_GEARS.value
       else:
         # non-HDA2
         if 0x1cf not in fingerprint[CAN.ECAN]:
