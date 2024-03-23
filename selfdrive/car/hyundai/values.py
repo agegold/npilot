@@ -365,24 +365,24 @@ class CAR(Platforms):
   )
   CASPER = HyundaiPlatformConfig(
     "HYUNDAI CASPER",
-    HyundaiCarInfo("HYUNDAI CASPER", "All", car_parts=CarParts.common([CarHarness.hyundai_k])),
+    [HyundaiCarDocs("HYUNDAI CASPER", "All", car_parts=CarParts.common([CarHarness.hyundai_k]))],
     CarSpecs(mass=985, wheelbase=2.40, steerRatio=14.2),  # mass: from https://www.hyundai-motor.com.tw/clicktobuy/custin#spec_0, steerRatio: from learner
     flags=HyundaiFlags.CHECKSUM_CRC8,
   )
   GRANDEUR_GN7 = HyundaiCanFDPlatformConfig(
     "HYUNDAI GRANDEUR_GN7",
-    HyundaiCarInfo("HYUNDAI GRANDEUR_GN7 2023", "All", car_parts=CarParts.common([CarHarness.hyundai_k])),
+    [HyundaiCarDocs("HYUNDAI GRANDEUR_GN7 2023", "All", car_parts=CarParts.common([CarHarness.hyundai_k]))],
     CarSpecs(mass=1620, wheelbase=2.895, steerRatio=14.2),  # mass: from https://www.hyundai-motor.com.tw/clicktobuy/custin#spec_0, steerRatio: from learner
    )
   GRANDEUR_GN7_HYBRID = HyundaiCanFDPlatformConfig(
     "HYUNDAI GRANDEUR_GN7 HYBRID",
-    HyundaiCarInfo("HYUNDAI GRANDEUR_GN7 HYBRID 2023", "All", car_parts=CarParts.common([CarHarness.hyundai_k])),
+    [HyundaiCarDocs("HYUNDAI GRANDEUR_GN7 HYBRID 2023", "All", car_parts=CarParts.common([CarHarness.hyundai_k]))],
     CarSpecs(mass=1700, wheelbase=2.895, steerRatio=14.2),  # mass: from https://www.hyundai-motor.com.tw/clicktobuy/custin#spec_0, steerRatio: from learner
     flags=HyundaiFlags.HYBRID,
   )
   IONIQ_5N = HyundaiCanFDPlatformConfig(
     "HYUNDAI IONIQ 5N 2023",
-    HyundaiCarInfo("HYUNDAI IONIQ 5N 2023", "All", car_parts=CarParts.common([CarHarness.hyundai_k])),
+    [HyundaiCarDocs("HYUNDAI IONIQ 5N 2023", "All", car_parts=CarParts.common([CarHarness.hyundai_k]))],
     CarSpecs(mass=2200, wheelbase=3.0, steerRatio=14.26),  # mass: from https://www.hyundai-motor.com.tw/clicktobuy/custin#spec_0, steerRatio: from learner
     flags=HyundaiFlags.EV,
   )
@@ -568,25 +568,25 @@ class CAR(Platforms):
   )
   KIA_CARNIVAL_4TH_GEN_HYBRID = HyundaiCanFDPlatformConfig(
     "KIA CARNIVAL 4TH GEN HYBRID ",   
-    HyundaiCarInfo("Kia Carnival HYBRID 2024", "All", car_parts=CarParts.common([CarHarness.hyundai_a])),
+    [HyundaiCarDocs("Kia Carnival HYBRID 2024", "All", car_parts=CarParts.common([CarHarness.hyundai_a]))],
     CarSpecs(mass=2165, wheelbase=3.09, steerRatio=14.23),
     flags=HyundaiFlags.RADAR_SCC | HyundaiFlags.HYBRID,
   )
   KIA_K8_1ST_GEN = HyundaiCanFDPlatformConfig(
     "KIA K8 1ST GEN",
-    HyundaiCarInfo("Kia K8  (with HDA II) 2023", "Highway Driving Assist II", car_parts=CarParts.common([CarHarness.hyundai_q])),
+    [HyundaiCarDocs("Kia K8  (with HDA II) 2023", "Highway Driving Assist II", car_parts=CarParts.common([CarHarness.hyundai_q]))],
     # mass: https://carprices.ae/brands/kia/2023/k8/1.6-turbo-hybrid, steerRatio: guesstimate from K5 platform
     CarSpecs(mass=1630, wheelbase=2.895, steerRatio=13.27)
   )
   KIA_K5_2024 = HyundaiCanFDPlatformConfig(
     "KIA K5 2024",
-    HyundaiCarInfo("KIA K5 2024", "All", car_parts=CarParts.common([CarHarness.hyundai_a])),
+    [HyundaiCarDocs("KIA K5 2024", "All", car_parts=CarParts.common([CarHarness.hyundai_a]))],
     CarSpecs(mass=1533, wheelbase=2.85, steerRatio=13.27),
     flags=HyundaiFlags.RADAR_SCC,
   )
   KIA_K5_2024_HYBRID = HyundaiCanFDPlatformConfig(
     "KIA K5 2024_HYBRID",
-    HyundaiCarInfo("KIA K5 2024_HYBRID", "All", car_parts=CarParts.common([CarHarness.hyundai_a])),
+    [HyundaiCarDocs("KIA K5 2024_HYBRID", "All", car_parts=CarParts.common([CarHarness.hyundai_a]))],
     CarSpecs(mass=1533, wheelbase=2.85, steerRatio=13.27),
     flags=HyundaiFlags.RADAR_SCC
   )
@@ -642,13 +642,13 @@ class CAR(Platforms):
   )
   GENESIS_G80_RG3 = HyundaiCanFDPlatformConfig(
     "GENESIS G80 RG3 2023",
-    HyundaiCarInfo("Genesis G80 RG3 2023", "All", car_parts=CarParts.common([CarHarness.hyundai_m])),
+    [HyundaiCarDocs("Genesis G80 RG3 2023", "All", car_parts=CarParts.common([CarHarness.hyundai_m]))],
     CarSpecs(mass=1785, wheelbase=3.01, steerRatio=16.5),
     flags=HyundaiFlags.RADAR_SCC,
   )
   GENESIS_EG80 = HyundaiCanFDPlatformConfig(
     "GENESIS EG80 2023",
-    HyundaiCarInfo("Genesis EG80 2023", "All", car_parts=CarParts.common([CarHarness.hyundai_m])),
+    [HyundaiCarDocs("Genesis EG80 2023", "All", car_parts=CarParts.common([CarHarness.hyundai_m]))],
     CarSpecs(mass=1785, wheelbase=2.95, steerRatio=14.14),
     flags=HyundaiFlags.EV,
   )
@@ -735,7 +735,7 @@ class CAR(Platforms):
   )
   GENESIS_GV70_1ST_GEN_HDA2 = HyundaiCanFDPlatformConfig(
     "GENESIS GV70 1ST GEN HDA2",
-    HyundaiCarInfo("GENESIS GV70 1ST GEN HDA2", "All", car_parts=CarParts.common([CarHarness.hyundai_m])),
+    [HyundaiCarDocs("GENESIS GV70 1ST GEN HDA2", "All", car_parts=CarParts.common([CarHarness.hyundai_m]))],
     CarSpecs(mass=1950, wheelbase=2.87, steerRatio=14.6),
     flags=HyundaiFlags.RADAR_SCC,
   )
