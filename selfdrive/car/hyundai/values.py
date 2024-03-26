@@ -641,7 +641,7 @@ class CAR(Platforms):
     flags=HyundaiFlags.LEGACY,
   )
   GENESIS_GV70_1ST_GEN_HDA2 = HyundaiCanFDPlatformConfig(
-    [HyundaiCarDocs("GENESIS GV70 1ST GEN HDA2", "All", car_parts=CarParts.common([CarHarness.hyundai_m]))],
+    [HyundaiCarDocs("Genesis GV70 1ST GEN HDA2", "All", car_parts=CarParts.common([CarHarness.hyundai_m]))],
     CarSpecs(mass=1950, wheelbase=2.87, steerRatio=14.6),
     flags=HyundaiFlags.RADAR_SCC,
   )
