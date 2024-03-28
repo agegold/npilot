@@ -645,7 +645,7 @@ class CAR(Platforms):
     CarSpecs(mass=1950, wheelbase=2.87, steerRatio=14.6),
     flags=HyundaiFlags.RADAR_SCC,
   )
-  GENESIS_GV70_ELECTRONIC_GEN = HyundaiCanFDPlatformConfig(
+  GENESIS_GV70_ELECTRONIC_1ST_GEN = HyundaiCanFDPlatformConfig(
     [HyundaiCarDocs("Genesis GV70 ELECTRONIC 1ST GEN HDA2", "All", car_parts=CarParts.common([CarHarness.hyundai_m]))],
     CarSpecs(mass=1950, wheelbase=2.87, steerRatio=14.6),
     flags=HyundaiFlags.RADAR_SCC,
