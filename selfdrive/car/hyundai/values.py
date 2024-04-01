@@ -522,7 +522,7 @@ class CAR(Platforms):
   KIA_K5_2024_HYBRID = HyundaiCanFDPlatformConfig(
     [HyundaiCarDocs("KIA K5 2024_HYBRID", "All", car_parts=CarParts.common([CarHarness.hyundai_a]))],
     CarSpecs(mass=1533, wheelbase=2.85, steerRatio=13.27),
-    flags=HyundaiFlags.RADAR_SCC
+    flags=HyundaiFlags.RADAR_SCC,
   )
   KIA_K7_YG_2020 = HyundaiPlatformConfig(
     "KIA K7 2020(YG)",
