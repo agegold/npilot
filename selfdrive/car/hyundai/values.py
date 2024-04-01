@@ -525,14 +525,12 @@ class CAR(Platforms):
     flags=HyundaiFlags.RADAR_SCC,
   )
   KIA_K7_YG_2020 = HyundaiPlatformConfig(
-    "KIA K7 2020(YG)",
-    [HyundaiCarDocs("Kia K7 2020(YG)", "Advanced Smart Cruise Control", car_parts=CarParts.common([CarHarness.hyundai_b]))],
+    [HyundaiCarDocs("Kia K7 2020(YG)", "All", car_parts=CarParts.common([CarHarness.hyundai_b]))],
     CarSpecs(mass=1555, wheelbase=2.855, steerRatio=14.4),
     flags=HyundaiFlags.LEGACY | HyundaiFlags.TCU_GEARS,
   )
   KIA_K7_HEV_YG_2020 = HyundaiPlatformConfig(
-    "KIA K7 HYBRID 2020(YG)",
-    [HyundaiCarDocs("Kia K7 Hybrid 2020-", "Advanced Smart Cruise Control", car_parts=CarParts.common([CarHarness.hyundai_c]))],
+    [HyundaiCarDocs("Kia K7 Hybrid 2020-", "All", car_parts=CarParts.common([CarHarness.hyundai_c]))],
     CarSpecs(mass=1680, wheelbase=2.855, steerRatio=14.4),
     flags=HyundaiFlags.HYBRID | HyundaiFlags.LEGACY,
   )
