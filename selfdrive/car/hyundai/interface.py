@@ -258,3 +258,4 @@ class CarInterface(CarInterfaceBase):
 
   def create_buttons_can_fd_alt(self, button):
     return None
+
