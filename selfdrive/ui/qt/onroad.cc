@@ -72,9 +72,6 @@ OnroadWindow::OnroadWindow(QWidget *parent) : QWidget(parent) {
 }
 
 void OnroadWindow::updateState(const UIState &s) {
-  QColor bgColor = bg_colors[s.status];
-  Alert alert = Alert::get(*(s.sm), s.scene.started_frame);
-  alerts->updateAlert(alert);
 
   if (s.scene.map_on_left) {
     split->setDirection(QBoxLayout::LeftToRight);
@@ -82,7 +79,10 @@ void OnroadWindow::updateState(const UIState &s) {
     split->setDirection(QBoxLayout::RightToLeft);
   }
 
+  alerts->updateState(s);
   nvg->updateState(s);
+
+  QColor bgColor = bg_colors[s.status];
 
   if (bg != bgColor) {
     // repaint border
@@ -96,7 +96,7 @@ void OnroadWindow::mousePressEvent(QMouseEvent* e) {
   if (map != nullptr) {
     // Switch between map and sidebar when using navigate on openpilot
     bool sidebarVisible = geometry().x() > 0;
-    bool show_map = /*uiState()->scene.navigate_on_openpilot ? sidebarVisible :*/ !sidebarVisible;
+    bool show_map = !sidebarVisible;
     map->setVisible(show_map && !map->isVisible());
   }
 #endif
@@ -128,7 +128,7 @@ void OnroadWindow::offroadTransition(bool offroad) {
   }
 #endif
 
-  alerts->updateAlert({});
+  alerts->clear();
 }
 
 void OnroadWindow::primeChanged(bool prime) {
@@ -152,11 +152,53 @@ void OnroadWindow::paintEvent(QPaintEvent *event) {
 // ***** onroad widgets *****
 
 // OnroadAlerts
-void OnroadAlerts::updateAlert(const Alert &a) {
+void OnroadAlerts::updateState(const UIState &s) {
+  Alert a = getAlert(*(s.sm), s.scene.started_frame);
   if (!alert.equal(a)) {
     alert = a;
     update();
   }
+}
+
+void OnroadAlerts::clear() {
+  alert = {};
+  update();
+}
+
+OnroadAlerts::Alert OnroadAlerts::getAlert(const SubMaster &sm, uint64_t started_frame) {
+  const cereal::ControlsState::Reader &cs = sm["controlsState"].getControlsState();
+  const uint64_t controls_frame = sm.rcv_frame("controlsState");
+
+  Alert a = {};
+  if (controls_frame >= started_frame) {  // Don't get old alert.
+    a = {cs.getAlertText1().cStr(), cs.getAlertText2().cStr(),
+         cs.getAlertType().cStr(), cs.getAlertSize(), cs.getAlertStatus()};
+  }
+
+  if (!sm.updated("controlsState") && (sm.frame - started_frame) > 5 * UI_FREQ) {
+    const int CONTROLS_TIMEOUT = 5;
+    const int controls_missing = (nanos_since_boot() - sm.rcv_time("controlsState")) / 1e9;
+
+    // Handle controls timeout
+    if (controls_frame < started_frame) {
+      // car is started, but controlsState hasn't been seen at all
+      a = {tr("openpilot Unavailable"), tr("Waiting for controls to start"),
+           "controlsWaiting", cereal::ControlsState::AlertSize::MID,
+           cereal::ControlsState::AlertStatus::NORMAL};
+    } else if (controls_missing > CONTROLS_TIMEOUT && !Hardware::PC()) {
+      // car is started, but controls is lagging or died
+      if (cs.getEnabled() && (controls_missing - CONTROLS_TIMEOUT) < 10) {
+        a = {tr("TAKE CONTROL IMMEDIATELY"), tr("Controls Unresponsive"),
+             "controlsUnresponsive", cereal::ControlsState::AlertSize::FULL,
+             cereal::ControlsState::AlertStatus::CRITICAL};
+      } else {
+        a = {tr("Controls Unresponsive"), tr("Reboot Device"),
+             "controlsUnresponsivePermanent", cereal::ControlsState::AlertSize::MID,
+             cereal::ControlsState::AlertStatus::NORMAL};
+      }
+    }
+  }
+  return a;
 }
 
 void OnroadAlerts::paintEvent(QPaintEvent *event) {
@@ -978,6 +1020,9 @@ void AnnotatedCameraWidget::drawSteer(QPainter &p) {
   const SubMaster &sm = *(uiState()->sm);
   auto car_state = sm["carState"].getCarState();
   auto car_control = sm["carControl"].getCarControl();
+  auto radar_state = sm["radarState"].getRadarState();
+  auto lead_one = radar_state.getLeadOne();
+  auto lead_two = radar_state.getLeadTwo();
 
   float steer_angle = car_state.getSteeringAngleDeg();
   float desire_angle = car_control.getActuators().getSteeringAngleDeg();
@@ -998,6 +1043,20 @@ void AnnotatedCameraWidget::drawSteer(QPainter &p) {
 
   p.setPen(QColor(155, 255, 155, 200));
   p.drawText(rect, Qt::AlignCenter, str);
+
+  if(lead_one.getStatus()) {
+    str.sprintf("%.1fm", lead_one.getDRel());
+    rect.setRect(x + 150, y, width, width);
+    p.setPen(QColor(255, 255, 255, 200));
+    p.drawText(rect, Qt::AlignCenter, str);
+  }
+
+  if(lead_two.getStatus()) {
+    str.sprintf("%.1fm", lead_two.getDRel());
+    rect.setRect(x + 150, y + 80, width, width);
+    p.setPen(QColor(255, 255, 255, 200));
+    p.drawText(rect, Qt::AlignCenter, str);
+  }
 
   p.restore();
 }
@@ -1035,10 +1094,8 @@ void AnnotatedCameraWidget::drawDeviceState(QPainter &p) {
   const auto freeSpacePercent = deviceState.getFreeSpacePercent();
 
   const auto cpuTempC = deviceState.getCpuTempC();
-  const auto gpuTempC = deviceState.getGpuTempC();
 
   float cpuTemp = 0.f;
-  float gpuTemp = 0.f;
 
   if(std::size(cpuTempC) > 0) {
     for(int i = 0; i < std::size(cpuTempC); i++) {
@@ -1047,17 +1104,9 @@ void AnnotatedCameraWidget::drawDeviceState(QPainter &p) {
     cpuTemp = cpuTemp / (float)std::size(cpuTempC);
   }
 
-  if(std::size(gpuTempC) > 0) {
-    for(int i = 0; i < std::size(gpuTempC); i++) {
-      gpuTemp += gpuTempC[i];
-    }
-    gpuTemp = gpuTemp / (float)std::size(gpuTempC);
-    cpuTemp = (cpuTemp + gpuTemp) / 2.f;
-  }
-
   int w = 192;
   int x = width() - (30 + w) + 8;
-  int y = 340;
+  int y = 340 + 80;
 
   QString str;
   QRect rect;
@@ -1091,21 +1140,6 @@ void AnnotatedCameraWidget::drawDeviceState(QPainter &p) {
   rect = QRect(x, y, w, w);
   p.setPen(QColor(255, 255, 255, 200));
   p.drawText(rect, Qt::AlignCenter, "CPU");
-
-  y += 80;
-  p.setFont(InterFont(50, QFont::Bold));
-  str.sprintf("%.0f°C", gpuTemp);
-  rect = QRect(x, y, w, w);
-  r = interp<float>(gpuTemp, {35.f, 60.f}, {200.f, 255.f}, false);
-  g = interp<float>(gpuTemp, {35.f, 60.f}, {255.f, 200.f}, false);
-  p.setPen(QColor(r, g, 200, 200));
-  p.drawText(rect, Qt::AlignCenter, str);
-
-  y += 55;
-  p.setFont(InterFont(25, QFont::Bold));
-  rect = QRect(x, y, w, w);
-  p.setPen(QColor(255, 255, 255, 200));
-  p.drawText(rect, Qt::AlignCenter, "GPU");
 
   p.restore();
 }
