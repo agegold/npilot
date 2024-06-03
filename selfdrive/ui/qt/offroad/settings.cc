@@ -490,8 +490,11 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
     {tr("Toggles"), toggles},
     {tr("Software"), new SoftwarePanel(this)},
     {tr("Community"), new CommunityPanel(this)},
-    {"nTune", new nTuneMainWidget(this)},
   };
+
+  if(nTuneMainWidget::checkFilesExist()) {
+    panels.append({"nTune", new nTuneMainWidget(this)});
+  }
 
   nav_btns = new QButtonGroup(this);
   for (auto &[name, panel] : panels) {
@@ -635,12 +638,6 @@ CommunityPanel::CommunityPanel(SettingsWindow *parent) : ListWidget(parent) {
       tr("Use external navi routes"),
       "",
       "../assets/offroad/icon_openpilot.png",
-    },
-    {
-      "ShowDebugMessage",
-      tr("Show Debug Message"),
-      "",
-      "../assets/offroad/icon_shell.png",
     },
     {
       "DriverCameraOnReverse",
