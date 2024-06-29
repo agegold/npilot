@@ -27,13 +27,12 @@ BUTTONS_DICT = {Buttons.RES_ACCEL: ButtonType.accelCruise, Buttons.SET_DECEL: Bu
 class CarInterface(CarInterfaceBase):
   def __init__(self, CP, CarController, CarState):
     super().__init__(CP, CarController, CarState)
-    self.CAN = CanBus(CP)
 
   @staticmethod
   def get_pid_accel_limits(CP, current_speed, cruise_speed):
     v_current_kph = current_speed * CV.MS_TO_KPH
-    gas_max_bp = [0., 3., 7., 15., 30., 70., 130., 150.]
-    gas_max_v = [2.0, 1.8, 1.5, 1.3, 0.8, 0.4, 0.15, 0.1]
+    gas_max_bp = [0., 10., 30., 70., 130., 150.]
+    gas_max_v = [1.2, 1.0, 0.8, 0.4, 0.15, 0.1]
     return ACCEL_MIN, interp(v_current_kph, gas_max_bp, gas_max_v)
 
   @staticmethod
@@ -67,10 +66,11 @@ class CarInterface(CarInterfaceBase):
           ret.flags |= HyundaiFlags.CANFD_HDA2_ALT_STEERING.value
       else:
         # non-HDA2
-        if 0x1cf not in fingerprint[CAN.ECAN]:
-          ret.flags |= HyundaiFlags.CANFD_ALT_BUTTONS.value
         if candidate not in CANFD_RADAR_SCC_CAR:
           ret.flags |= HyundaiFlags.CANFD_CAMERA_SCC.value
+
+      if 0x1cf not in fingerprint[CAN.ECAN]:
+        ret.flags |= HyundaiFlags.CANFD_ALT_BUTTONS.value
 
       # ICE cars do not have 0x130; GEARS message on 0x40 or 0x70 instead
       if 0x130 not in fingerprint[CAN.ECAN]:
@@ -102,14 +102,14 @@ class CarInterface(CarInterfaceBase):
 
     # *** longitudinal control ***
     if candidate in CANFD_CAR:
-      ret.longitudinalTuning.kpBP = [0., 10.]
-      ret.longitudinalTuning.kpV = [0.5, 0.2]
-      ret.longitudinalTuning.kiV = [0.]
-      ret.experimentalLongitudinalAvailable = candidate not in CANFD_UNSUPPORTED_LONGITUDINAL_CAR
+      ret.longitudinalTuning.kpBP = [1., 3.]
+      ret.longitudinalTuning.kpV = [0.7, 0.07]
+      ret.longitudinalTuning.kf = 0.9
+      ret.experimentalLongitudinalAvailable = candidate not in (CANFD_UNSUPPORTED_LONGITUDINAL_CAR | CANFD_RADAR_SCC_CAR)
     else:
-      ret.longitudinalTuning.kpBP = [0., 10.]
-      ret.longitudinalTuning.kpV = [1.2, 0.6]
-      ret.longitudinalTuning.kiV = [0.]
+      ret.longitudinalTuning.kpBP = [1., 3.]
+      ret.longitudinalTuning.kpV = [1.0, 0.1]
+      ret.longitudinalTuning.kf = 0.9
       ret.experimentalLongitudinalAvailable = True #candidate not in (LEGACY_SAFETY_MODE_CAR)
 
     ret.openpilotLongitudinalControl = experimental_long and ret.experimentalLongitudinalAvailable
@@ -121,12 +121,11 @@ class CarInterface(CarInterfaceBase):
     ret.steerActuatorDelay = 0.2
     ret.steerLimitTimer = 2.0
 
-    ret.vEgoStarting = 0.2
-    ret.vEgoStopping = 0.2
+    ret.vEgoStarting = 0.1
+    ret.vEgoStopping = 0.1
     ret.startAccel = 1.0
-    ret.longitudinalActuatorDelayLowerBound = 0.5
-    ret.longitudinalActuatorDelayUpperBound = 0.5
-    ret.radarTimeStep = 0.02  # 50hz
+    ret.longitudinalActuatorDelay = 0.5
+    ret.radarTimeStep = 0.02
 
     # *** feature detection ***
     if candidate in CANFD_CAR:
@@ -247,11 +246,12 @@ class CarInterface(CarInterfaceBase):
     return ret
 
   @staticmethod
-  def get_params_adjust_set_speed():
+  def get_params_adjust_set_speed(CP):
+    if CP.carFingerprint in CANFD_CAR:
+      return [16], [20]
     return [16, 20], [12, 14, 16, 18]
 
   def create_buttons(self, button):
-
     if self.CP.carFingerprint in CANFD_CAR:
       if self.CP.flags & HyundaiFlags.CANFD_ALT_BUTTONS:
         return self.create_buttons_can_fd_alt(button)
@@ -270,13 +270,17 @@ class CarInterface(CarInterfaceBase):
 
   def create_buttons_can_fd(self, button):
     values = {
-      "COUNTER": (self.CS.buttons_counter + 1) % 15,
+      "COUNTER": self.CS.buttons_counter + 1,
       "SET_ME_1": 1,
       "CRUISE_BUTTONS": button,
     }
-    bus = self.CAN.ECAN if self.CP.flags & HyundaiFlags.CANFD_HDA2 else self.CAN.CAM
+    bus = self.CC.CAN.ECAN if self.CP.flags & HyundaiFlags.CANFD_HDA2 else self.CC.CAN.CAM
     return self.CC.packer.make_can_msg("CRUISE_BUTTONS", bus, values)
 
   def create_buttons_can_fd_alt(self, button):
-    return None
+    values = copy.copy(self.CS.canfd_buttons)
+    values["CRUISE_BUTTONS"] = button
+    values["COUNTER"] = (values["COUNTER"] + 1) % 256
+    bus = self.CC.CAN.ECAN if self.CP.flags & HyundaiFlags.CANFD_HDA2 else self.CC.CAN.CAM
+    return self.CC.packer.make_can_msg("CRUISE_BUTTONS_ALT", bus, values)
 

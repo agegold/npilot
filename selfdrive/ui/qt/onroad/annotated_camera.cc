@@ -136,8 +136,7 @@ void AnnotatedCameraWidget::drawLaneLines(QPainter &painter, const UIState *s) {
   QLinearGradient bg(0, height(), 0, 0);
   if (sm["controlsState"].getControlsState().getExperimentalMode()) {
     // The first half of track_vertices are the points for the right side of the path
-    // and the indices match the positions of accel from uiPlan
-    const auto &acceleration = sm["uiPlan"].getUiPlan().getAccel();
+    const auto &acceleration = sm["modelV2"].getModelV2().getAcceleration().getX();
     const int max_len = std::min<int>(scene.track_vertices.length() / 2, acceleration.size());
 
     for (int i = 0; i < max_len; ++i) {
@@ -253,7 +252,7 @@ void AnnotatedCameraWidget::paintEvent(QPaintEvent *event) {
   p.endNativePainting();
 
   if (s->scene.world_objects_visible && !s->scene.show_driver_camera) {
-    update_model(s, model, sm["uiPlan"].getUiPlan());
+    update_model(s, model);
     // DMoji
     if (!hideBottomIcons && (sm.rcv_frame("driverStateV2") > s->scene.started_frame)) {
       update_dmonitoring(s, sm["driverStateV2"].getDriverStateV2(), dm_fade_state, false);
@@ -383,7 +382,7 @@ void AnnotatedCameraWidget::drawHud(QPainter &p, const cereal::ModelDataV2::Read
   const auto ex_state = car_state.getExState();
 
   QString infoText;
-  infoText.sprintf("TP(%.2f/%.2f) LTP(%.2f/%.2f/%.0f) AO(%.2f/%.2f) SR(%.2f) SAD(%.2f) SCC(%d)",
+  infoText.sprintf("TP(%.2f/%.2f) LTP(%.2f/%.2f/%.0f) AO(%.2f/%.2f) SR(%.2f) SAD(%.2f) SCC(%d) Flags(%d)",
 
                       torque_state.getLatAccelFactor(),
                       torque_state.getFriction(),
@@ -398,7 +397,8 @@ void AnnotatedCameraWidget::drawHud(QPainter &p, const cereal::ModelDataV2::Read
                       car_control.getSteerRatio(),
                       ex_state.getSteerActuatorDelay(),
 
-                      car_params.getSccBus()
+                      car_params.getSccBus(),
+                      car_params.getFlags()
                       );
 
   // info

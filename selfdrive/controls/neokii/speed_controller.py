@@ -47,7 +47,7 @@ class SpeedController:
     self.wait_index = 0
     self.alive_count = 0
 
-    self.wait_count_list, self.alive_count_list = CI.get_params_adjust_set_speed()
+    self.wait_count_list, self.alive_count_list = CI.get_params_adjust_set_speed(CP)
     random.shuffle(self.wait_count_list)
     random.shuffle(self.alive_count_list)
 
@@ -93,10 +93,9 @@ class SpeedController:
 
   def read_param(self):
     self.slow_on_curves = True
-    self.sync_set_speed_while_gas_pressed = True
+    self.sync_set_speed_while_gas_pressed = self.params.get_bool('SyncSetSpeedWhileGas')
     self.is_metric = self.params.get_bool('IsMetric')
     self.experimental_mode = self.params.get_bool("ExperimentalMode") and self.CP.openpilotLongitudinalControl
-    self.enable_debug_message = self.params.get_bool('EnabledDebugMessage')
 
     self.speed_conv_to_ms = CV.KPH_TO_MS if self.is_metric else CV.MPH_TO_MS
     self.speed_conv_to_clu = CV.MS_TO_KPH if self.is_metric else CV.MS_TO_MPH
@@ -349,13 +348,12 @@ class SpeedController:
       if self.alive_timer == 0:
         current_set_speed_clu = int(round(CS.cruiseState.speed * self.speed_conv_to_clu))
         self.btn = self._get_button(current_set_speed_clu)
-        self.alive_count = 1
+        self.alive_count = self.get_alive_count()
 
       if self.btn != Buttons.NONE:
         can = self.CI.create_buttons(self.btn)
         if can is not None:
-          for _ in range(self.get_alive_count()):
-            can_sends.append(can)
+          can_sends.append(can)
 
         self.alive_timer += 1
 
