@@ -362,7 +362,8 @@ class CarInterface(CarInterfaceBase):
     ret.hasEms = 608 in fingerprint[0] and 809 in fingerprint[0]
     ret.hasLfaHda = 1157 in fingerprint[0]
 
-    ret.radarOffCan = ret.sccBus == -1
+    #ret.radarOffCan = ret.sccBus == -1
+    ret.radarOffCan = True
     ret.pcmCruise = not ret.radarOffCan
 
     # set safety_hyundai_community only for non-SCC, MDPS harrness or SCC harrness cars or cars that have unknown issue
