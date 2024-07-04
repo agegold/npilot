@@ -831,6 +831,11 @@ EVENTS: dict[int, dict[str, Alert | AlertCallbackType]] = {
     ET.NO_ENTRY: NoEntryAlert("크루즈 오류: 재시동 하세요"),
   },
 
+  EventName.espActive: {
+    ET.IMMEDIATE_DISABLE: ImmediateDisableAlert("Electronic Stability Control Active"),
+    ET.NO_ENTRY: NoEntryAlert("Electronic Stability Control Active"),
+  },
+
   EventName.controlsMismatch: {
     ET.IMMEDIATE_DISABLE: ImmediateDisableAlert("컨트롤 불일치"),
     ET.NO_ENTRY: NoEntryAlert("Controls Mismatch"),
