@@ -193,7 +193,7 @@ static int hyundai_rx_hook(CANPacket_t *to_push) {
           controls_allowed = 1;
         }
         if (!cruise_engaged) {
-          controls_allowed = 0;
+          controls_allowed = 1;
         }
         cruise_engaged_prev = cruise_engaged;
       }
@@ -365,7 +365,7 @@ static int hyundai_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
 }
 
 static const addr_checks* hyundai_init(int16_t param) {
-  controls_allowed = false;
+  controls_allowed = true;
   relay_malfunction_reset();
 
   hyundai_legacy = false;
@@ -385,7 +385,7 @@ static const addr_checks* hyundai_init(int16_t param) {
 }
 
 static const addr_checks* hyundai_legacy_init(int16_t param) {
-  controls_allowed = false;
+  controls_allowed = true;
   relay_malfunction_reset();
 
   hyundai_legacy = true;
