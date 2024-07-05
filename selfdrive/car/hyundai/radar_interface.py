@@ -11,7 +11,7 @@ RADAR_START_ADDR = 0x500
 RADAR_MSG_COUNT = 32
 
 def get_radar_can_parser(CP):
-
+  return None
   if False: #Params().get_bool("NewRadarInterface"):
 
     signals = []
