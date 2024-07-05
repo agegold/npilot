@@ -31,8 +31,8 @@ class CarInterface(CarInterfaceBase):
   @staticmethod
   def get_pid_accel_limits(CP, current_speed, cruise_speed):
     v_current_kph = current_speed * CV.MS_TO_KPH
-    gas_max_bp = [0., 10., 30., 70., 130., 150.]
-    gas_max_v = [1.2, 1.0, 0.8, 0.4, 0.15, 0.1]
+    gas_max_bp = [10., 30., 70., 130., 150.]
+    gas_max_v = [1.0, 0.8, 0.4, 0.15, 0.1]
     return ACCEL_MIN, interp(v_current_kph, gas_max_bp, gas_max_v)
 
   @staticmethod
@@ -45,8 +45,6 @@ class CarInterface(CarInterfaceBase):
     # added to selfdrive/car/tests/routes.py, we can remove it from this list.
     # FIXME: the Optima Hybrid 2017 uses a different SCC12 checksum
     ret.dashcamOnly = candidate in {CAR.KIA_OPTIMA_H, }
-
-    print(fingerprint)
 
     #adas = any(0x1e5 in fingerprint[i] for i in range(3)) # TEST
     hda2 = Ecu.adas in [fw.ecu for fw in car_fw] or Params().get_bool('CanFdHda2')
@@ -108,7 +106,7 @@ class CarInterface(CarInterfaceBase):
       ret.experimentalLongitudinalAvailable = candidate not in (CANFD_UNSUPPORTED_LONGITUDINAL_CAR | CANFD_RADAR_SCC_CAR)
     else:
       ret.longitudinalTuning.kpBP = [1., 3.]
-      ret.longitudinalTuning.kpV = [1.0, 0.1]
+      ret.longitudinalTuning.kpV = [1.2, 0.1]
       ret.longitudinalTuning.kf = 0.9
       ret.experimentalLongitudinalAvailable = True #candidate not in (LEGACY_SAFETY_MODE_CAR)
 
