@@ -340,6 +340,7 @@ FINGERPRINTS = {
   }],
   CAR.BONGO_EV: [{
   }],
+}
 FW_VERSIONS = {}
 
 CHECKSUM = {
