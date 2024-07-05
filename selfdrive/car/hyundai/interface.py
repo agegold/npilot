@@ -311,6 +311,10 @@ class CarInterface(CarInterfaceBase):
       ret.wheelbase = 3.15
       ret.centerToFront = ret.wheelbase * 0.4
       tire_stiffness_factor = 0.8
+    elif candidate == CAR.BONGO_EV:
+      ret.mass = 3228. + STD_CARGO_KG
+      ret.wheelbase = 2.85
+      ret.centerToFront = ret.wheelbase * 0.4
 
       ret.steerRatio = 14.5
       ret.steerRateCost = 0.4
