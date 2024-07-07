@@ -168,7 +168,7 @@ function launch {
   export PYTHONPATH="$PWD:$PWD/pyextra"
 
   # write tmux scrollback to a file
-  tmux capture-pane -pq -S-1000 > /data/log_$(date +%Y%m%d_%H%M%S)
+  tmux capture-pane -pq -S-1000 > /tmp/launch_log_$(date -d '+9 hour' +%Y%m%d_%H%M%S)
 
 
   # hardware specific init
