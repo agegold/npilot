@@ -82,7 +82,7 @@ function launch {
   tmux capture-pane -pq -S-1000 > /tmp/launch_log
 
   python ./opendbc/car/hyundai/values.py > /data/params/d/SupportedCars
-  
+
   # start manager
   cd system/manager
   if [ ! -f $DIR/prebuilt ]; then
