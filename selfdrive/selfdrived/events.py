@@ -382,6 +382,12 @@ EVENTS: dict[int, dict[str, Alert | AlertCallbackType]] = {
     ET.PERMANENT: StartupAlert("블랙박스 모드 지원되지 않는 차"),
   },
 
+  EventName.startupNoSecOcKey: {
+    ET.PERMANENT: NormalPermanentAlert("블랙박스 모드",
+                                       "시큐리티키가 없습니다.",
+                                       priority=Priority.HIGH),
+  },
+
   EventName.dashcamMode: {
     ET.PERMANENT: NormalPermanentAlert("블랙박스 모드",
                                        priority=Priority.LOWEST),
@@ -390,6 +396,7 @@ EVENTS: dict[int, dict[str, Alert | AlertCallbackType]] = {
   EventName.invalidLkasSetting: {
     ET.PERMANENT: NormalPermanentAlert("차량 LKAS 버튼 상태확인",
                                        "차량 LKAS 버튼 OFF후 활성화됩니다"),
+    ET.NO_ENTRY: NoEntryAlert("LKAS 셋팅이 틀립니다."),
   },
 
   EventName.cruiseMismatch: {
@@ -939,16 +946,6 @@ EVENTS: dict[int, dict[str, Alert | AlertCallbackType]] = {
     ET.NO_ENTRY: NoEntryAlert("Slow down to engage"),
   },
 
-  EventName.lowSpeedLockout: {
-    ET.PERMANENT: NormalPermanentAlert("크루즈 오류 : 차량을 재가동하세요"),
-    ET.NO_ENTRY: NoEntryAlert("크루즈 오류 : 차량을 재가동하세요"),
-  },
-
-  EventName.lkasDisabled: {
-    ET.PERMANENT: NormalPermanentAlert("LKAS Disabled: Enable LKAS to engage"),
-    ET.NO_ENTRY: NoEntryAlert("LKAS Disabled"),
-  },
-
   EventName.vehicleSensorsInvalid: {
     ET.IMMEDIATE_DISABLE: ImmediateDisableAlert("차량 센서 이상"),
     ET.PERMANENT: NormalPermanentAlert("차량 센서 캘리브레이션중", "캘리브레이션을 위해 주행중"),
@@ -960,12 +957,7 @@ EVENTS: dict[int, dict[str, Alert | AlertCallbackType]] = {
   },
 
   EventName.slowingDownSpeed: {
-    ET.PERMANENT: Alert("속도를 조절합니다", "", AlertStatus.normal, AlertSize.small,
-                        Priority.LOW, VisualAlert.none, AudibleAlert.none, .1),
-  },
-
-  EventName.slowingDownSpeedSound: {
-    ET.PERMANENT: Alert("속도를 조절합니다", "", AlertStatus.normal, AlertSize.small,
+    ET.PERMANENT: Alert("", "", AlertStatus.normal, AlertSize.none,
                         Priority.MID, VisualAlert.none, AudibleAlert.slowingDownSpeed, 2.),
   },
 
