@@ -170,7 +170,7 @@ class nTune():
   def checkValidCommon(self):
     updated = False
 
-    if self.checkValue("useLiveSteerRatio", 0., 1., 1.):
+    if self.checkValue("useLiveSteerRatio", 0., 1., 0.):
       updated = True
 
     if self.checkValue("steerRatio", 10.0, 20.0, 16.5):
