@@ -1320,6 +1320,9 @@ struct LateralPlan @0xe1e9318e2ae8b51e {
   solverCost @32 :Float32;
   solverState @33 :SolverState;
 
+  distances @34 :List(Float32);
+  position @35 :XYZTData;
+
   struct SolverState {
     x @0 :List(List(Float32));
     u @1 :List(Float32);
@@ -2451,6 +2454,14 @@ struct Microphone {
   filteredSoundPressureWeightedDb @2 :Float32;
 }
 
+struct Touch {
+  sec @0 :Int64;
+  usec @1 :Int64;
+  type @2 :UInt8;
+  code @3 :Int32;
+  value @4 :Int32;
+}
+
 struct Event {
   logMonoTime @0 :UInt64;  # nanoseconds
   valid @67 :Bool = true;
@@ -2531,6 +2542,9 @@ struct Event {
     logMessage @18 :Text;
     errorLogMessage @85 :Text;
 
+    # touch frame
+    touch @135 :List(Touch);
+
     # navigation
     navInstruction @82 :NavInstruction;
     navRoute @83 :NavRoute;
@@ -2570,9 +2584,9 @@ struct Event {
     customReserved9 @116 :Custom.CustomReserved9;
 
     # neokii
-    naviData @135 :NaviData;
-    naviGps @136 :NaviGps;
-    naviObstacles @137 :NaviObstacles;
+    naviData @136 :NaviData;
+    naviGps @137 :NaviGps;
+    naviObstacles @138 :NaviObstacles;
 
     # *********** legacy + deprecated ***********
     model @9 :Legacy.ModelData; # TODO: rename modelV2 and mark this as deprecated
@@ -2612,7 +2626,7 @@ struct Event {
     pandaStateDEPRECATED @12 :PandaState;
     driverStateDEPRECATED @59 :DriverStateDEPRECATED;
     sensorEventsDEPRECATED @11 :List(SensorEventData);
-    lateralPlanDEPRECATED @64 :LateralPlan;
+    lateralPlan @64 :LateralPlan;
     navModelDEPRECATED @104 :NavModelData;
     uiPlanDEPRECATED @106 :UiPlan;
     liveLocationKalmanDEPRECATED @72 :LiveLocationKalman;
