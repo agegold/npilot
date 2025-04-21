@@ -1,5 +1,6 @@
-import pathlib, re, ctypes, mmap, collections, functools, copy
+import pathlib, re, ctypes, mmap, collections, functools, copy, os
 import tinygrad.runtime.autogen.kfd as kfd
+import tinygrad.runtime.autogen.am.am as am
 from tinygrad.helpers import from_mv
 from test.mockgpu.driver import VirtDriver, VirtFileDesc, TextFileDesc, DirFileDesc, VirtFile
 from test.mockgpu.amd.amdgpu import AMDGPU, gpu_props
@@ -49,6 +50,7 @@ class AMDDriver(VirtDriver):
     self.object_by_handle = {}
     self.doorbells = {}
     self.next_doorbell = collections.defaultdict(int)
+    self.mmu_event_ids = []
 
     for i in range(gpus): self._prepare_gpu(i)
 
@@ -81,6 +83,23 @@ class AMDDriver(VirtDriver):
       VirtFile(f'/sys/devices/virtual/kfd/kfd/topology/nodes/{gpu_id}/gpu_id', functools.partial(TextFileDesc, text=f"{gpu_id}")),
       VirtFile(f'/sys/devices/virtual/kfd/kfd/topology/nodes/{gpu_id}/properties',
         functools.partial(TextFileDesc, text=gpu_props.format(drm_render_minor=gpu_id))),
+      VirtFile(f'/sys/class/drm/renderD{gpu_id}/device/ip_discovery/die/0',
+               functools.partial(DirFileDesc, child_names=[str(am.GC_HWID), str(am.SDMA0_HWID), str(am.NBIF_HWID)])),
+      VirtFile(f'/sys/class/drm/renderD{gpu_id}/device/ip_discovery/die/0/{am.GC_HWID}/0/major', functools.partial(TextFileDesc, text='11')),
+      VirtFile(f'/sys/class/drm/renderD{gpu_id}/device/ip_discovery/die/0/{am.GC_HWID}/0/minor', functools.partial(TextFileDesc, text='0')),
+      VirtFile(f'/sys/class/drm/renderD{gpu_id}/device/ip_discovery/die/0/{am.GC_HWID}/0/revision', functools.partial(TextFileDesc, text='0')),
+      VirtFile(f'/sys/class/drm/renderD{gpu_id}/device/ip_discovery/die/0/{am.GC_HWID}/0/base_addr',
+               functools.partial(TextFileDesc, text='0x00001260\n0x0000A000\n0x0001C000\n0x02402C00')),
+      VirtFile(f'/sys/class/drm/renderD{gpu_id}/device/ip_discovery/die/0/{am.SDMA0_HWID}/0/major', functools.partial(TextFileDesc, text='6')),
+      VirtFile(f'/sys/class/drm/renderD{gpu_id}/device/ip_discovery/die/0/{am.SDMA0_HWID}/0/minor', functools.partial(TextFileDesc, text='0')),
+      VirtFile(f'/sys/class/drm/renderD{gpu_id}/device/ip_discovery/die/0/{am.SDMA0_HWID}/0/revision', functools.partial(TextFileDesc, text='0')),
+      VirtFile(f'/sys/class/drm/renderD{gpu_id}/device/ip_discovery/die/0/{am.SDMA0_HWID}/0/base_addr',
+               functools.partial(TextFileDesc, text='0x00001260\n0x0000A000\n0x0001C000\n0x02402C00')),
+      VirtFile(f'/sys/class/drm/renderD{gpu_id}/device/ip_discovery/die/0/{am.NBIF_HWID}/0/major', functools.partial(TextFileDesc, text='4')),
+      VirtFile(f'/sys/class/drm/renderD{gpu_id}/device/ip_discovery/die/0/{am.NBIF_HWID}/0/minor', functools.partial(TextFileDesc, text='3')),
+      VirtFile(f'/sys/class/drm/renderD{gpu_id}/device/ip_discovery/die/0/{am.NBIF_HWID}/0/revision', functools.partial(TextFileDesc, text='0')),
+      VirtFile(f'/sys/class/drm/renderD{gpu_id}/device/ip_discovery/die/0/{am.NBIF_HWID}/0/base_addr',
+               functools.partial(TextFileDesc, text='0x00000000\n0x00000014\n0x00000D20\n0x00010400\n0x0241B000\n0x04040000')),
       VirtFile(f'/dev/dri/renderD{gpu_id}', functools.partial(DRMFileDesc, driver=self, gpu=f"{self.gpus[gpu_id]}")),
     ]
 
@@ -114,6 +133,8 @@ class AMDDriver(VirtDriver):
     elif nr == kfd_ioctls.AMDKFD_IOC_CREATE_EVENT:
       struct.event_slot_index = self._alloc_next_event_slot()
       struct.event_id = struct.event_slot_index
+
+      if struct.event_type == kfd.KFD_IOC_EVENT_MEMORY: self.mmu_event_ids.append(struct.event_id)
     elif nr == kfd_ioctls.AMDKFD_IOC_CREATE_QUEUE:
       gpu = self.gpus[struct.gpu_id]
       if struct.queue_type == kfd.KFD_IOC_QUEUE_TYPE_SDMA:
@@ -126,7 +147,12 @@ class AMDDriver(VirtDriver):
       struct.doorbell_offset = self._alloc_doorbell(struct.gpu_id)
       self.track_address(struct.doorbell_offset, struct.doorbell_offset + 8, lambda mv,off: None, lambda mv, off: self._emulate_execute())
     elif nr == kfd_ioctls.AMDKFD_IOC_WAIT_EVENTS:
-      pass
+      evs = (kfd.struct_kfd_event_data * struct.num_events).from_address(struct.events_ptr)
+      for ev in evs:
+        if ev.event_id in self.mmu_event_ids and "MOCKGPU_EMU_FAULTADDR" in os.environ:
+          ev.memory_exception_data.gpu_id = 1
+          ev.memory_exception_data.va = int(os.environ["MOCKGPU_EMU_FAULTADDR"], 16)
+          ev.memory_exception_data.failure.NotPresent = 1
     else:
       name = "unknown"
       for k,v in kfd_ioctls.__dict__.items():

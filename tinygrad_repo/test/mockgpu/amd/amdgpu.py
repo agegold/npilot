@@ -5,9 +5,8 @@ import tinygrad.runtime.autogen.amd_gpu as amd_gpu
 
 SDMA_MAX_COPY_SIZE = 0x400000
 
-BASE_ADDR = 0x00001260
 PACKET3_SET_SH_REG_START = 0x2c00
-SUB = PACKET3_SET_SH_REG_START - BASE_ADDR
+SUB = PACKET3_SET_SH_REG_START - amd_gpu.GC_BASE__INST0_SEG0
 
 regCOMPUTE_PGM_LO = 0x1bac - SUB
 regCOMPUTE_USER_DATA_0 = 0x1be0 - SUB
@@ -19,7 +18,7 @@ WAIT_REG_MEM_FUNCTION_ALWAYS = 0
 WAIT_REG_MEM_FUNCTION_EQ = 3 # ==
 WAIT_REG_MEM_FUNCTION_GEQ = 5 # >=
 
-REMU_PATHS = ["libremu.so", "/usr/local/lib/libremu.so"]
+REMU_PATHS = ["libremu.so", "/usr/local/lib/libremu.so", "libremu.dylib", "/usr/local/lib/libremu.dylib", "/opt/homebrew/lib/libremu.dylib"]
 def _try_dlopen_remu():
   for path in REMU_PATHS:
     try:
@@ -156,7 +155,7 @@ class PM4Executor(AMDQueue):
 
     prg_sz = 0
     for st,sz in self.gpu.mapped_ranges:
-      if st <= prg_addr <= st+sz: prg_sz = sz - (prg_addr - st)
+      if st <= prg_addr < st+sz: prg_sz = sz - (prg_addr - st)
 
     assert prg_sz > 0, "Invalid prg ptr (not found in mapped ranges)"
     err = remu.run_asm(prg_addr, prg_sz, *gl, *lc, args_addr)
@@ -237,7 +236,8 @@ class SDMAExecutor(AMDQueue):
 
   def _execute_copy(self):
     struct = sdma_pkts.copy_linear.from_address(self.base + self.rptr[0] % self.size)
-    ctypes.memmove(struct.dst_addr, struct.src_addr, struct.count + 1)
+    count_cnt = to_mv(self.base + self.rptr[0] + 4, 4).cast('I')[0] & 0x3FFFFFFF
+    ctypes.memmove(struct.dst_addr, struct.src_addr, count_cnt + 1)
     self.rptr[0] += ctypes.sizeof(struct)
 
 class AMDGPU(VirtGPU):

@@ -1,10 +1,23 @@
 from __future__ import annotations
 from typing import Optional, Callable
 import functools, math
+from enum import Enum, auto
 from dataclasses import dataclass, field, replace
 from tinygrad.helpers import to_function_name, dedup, prod
 from tinygrad.ops import Ops, UOp, sym_infer, sint, Variable, ssimplify, GroupOp, PatternMatcher
 from tinygrad.dtype import DType
+
+class OptOps(Enum):
+  TC = auto(); UPCAST = auto(); UNROLL = auto(); LOCAL = auto(); LDS = auto() # noqa: E702
+  GROUP = auto(); GROUPTOP = auto(); NOLOCALS = auto(); PADTO = auto(); SWAP = auto() # noqa: E702
+  def __lt__(self, x:OptOps): return self.value < x.value
+
+@dataclass(frozen=True, order=True)
+class Opt:
+  op: OptOps
+  axis: Optional[int] = None
+  arg: Optional[int | tuple] = None
+  def __repr__(self): return f"Opt(op={self.op}, axis={self.axis}, arg={self.arg})"
 
 @dataclass(frozen=True)
 class TensorCore: # D = A * B + C, A is (M x K), B is (K x N), C and D are (M x N)
@@ -70,7 +83,9 @@ class ProgramSpec:
   name:str
   src:str
   device:str
+  ast:UOp  # save the base ast (this is method cache key)
   uops:Optional[list[UOp]]=None
+  applied_opts:Optional[list[Opt]]=None
   mem_estimate:sint=0  # TODO: get this from the load/store uops once min/max are good
 
   # filled in from uops (if we have uops)
@@ -79,6 +94,7 @@ class ProgramSpec:
   vars:list[Variable]=field(default_factory=list)
   globals:list[int]=field(default_factory=list)
   outs:list[int]=field(default_factory=list)
+  ins:list[int]=field(default_factory=list)
   _ran_post_init:bool=False  # NOTE: this is needed if you call replace on the Program
 
   def __post_init__(self):
@@ -88,6 +104,7 @@ class ProgramSpec:
         if u.op is Ops.DEFINE_VAR: self.vars.append(u)
         if u.op is Ops.DEFINE_GLOBAL: self.globals.append(u.arg)
         if u.op is Ops.STORE: self.outs.extend([x.arg for x in u.src[0].toposort if x.op is Ops.DEFINE_GLOBAL])
+        if u.op is Ops.LOAD: self.ins.extend([x.arg for x in u.src[0].toposort if x.op is Ops.DEFINE_GLOBAL])
         if u.op is Ops.SPECIAL:
           # NOTE: you have to set local_size and global_size to the base [1,1,1] outside this
           if u.arg[0][0] == 'i': self.local_size = None
@@ -96,6 +113,7 @@ class ProgramSpec:
           special_size[int(u.arg[0][-1])] = u.arg[1]
       self.vars = sorted(self.vars, key=lambda v: v.arg)
       self.outs = sorted(dedup(self.outs))
+      self.ins = sorted(dedup(self.ins))
       self._ran_post_init = True
 
   @functools.cached_property
@@ -118,12 +136,13 @@ class Renderer:
   has_local: bool = True
   has_shared: bool = True
   # NOTE: these two should be in (x,y,z) order to match the max_sizes argument in get_grouped_dims
-  global_max: Optional[tuple[int, ...]] = (0x8FFFFFFF,) * (3) # TODO: UOps.SPECIAL int32 indexes right now
-  local_max: Optional[tuple[int, ...]] = (0x8FFFFFFF,) * (3) # TODO: UOps.SPECIAL int32 indexes right now
+  global_max: Optional[tuple[int, ...]] = (0x8FFFFFFF,) * (3) # TODO: Ops.SPECIAL int32 indexes right now
+  local_max: Optional[tuple[int, ...]] = (0x8FFFFFFF,) * (3) # TODO: Ops.SPECIAL int32 indexes right now
   shared_max: int = 32768
   tensor_cores: list[TensorCore] = []
+  pre_matcher: Optional[PatternMatcher] = None
   extra_matcher: Optional[PatternMatcher] = None
   code_for_op: dict[Ops, Callable] = {}
 
   def __reduce__(self): return self.__class__, ()
-  def render(self, name:str, uops:list[UOp]) -> str: raise NotImplementedError("needs a renderer")
+  def render(self, uops:list[UOp]) -> str: raise NotImplementedError("needs a renderer")

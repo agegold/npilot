@@ -7,6 +7,7 @@ from tinygrad.renderer.ptx import PTXRenderer
 from tinygrad.runtime.autogen import cuda
 from tinygrad.runtime.support.compiler_cuda import cuda_disassemble, pretty_ptx, CUDACompiler, PTXCompiler, PTX
 if getenv("IOCTL"): import extra.nv_gpu_driver.nv_ioctl  # noqa: F401  # pylint: disable=unused-import
+if MOCKGPU:=getenv("MOCKGPU"): from test.mockgpu.cuda import cuda # type: ignore # pylint: disable=reimported
 
 def check(status):
   if status != 0: raise RuntimeError(f"CUDA Error {status}, {ctypes.string_at(init_c_var(ctypes.POINTER(ctypes.c_char)(), lambda x: cuda.cuGetErrorString(status, ctypes.byref(x)))).decode()}")  # noqa: E501
@@ -33,7 +34,7 @@ class CUDAProgram:
   def __init__(self, dev:CUDADevice, name:str, lib:bytes, smem:int=0):
     self.dev, self.name, self.lib, self.smem = dev, name, lib, smem
     if DEBUG >= 5: print("\n".join([f"{i+1:>3} {line}" for i, line in enumerate(pretty_ptx(lib.decode('utf-8')).split("\n"))]))
-    if DEBUG >= 6: cuda_disassemble(lib, dev.arch)
+    if DEBUG >= 7: cuda_disassemble(lib, dev.arch)
 
     check(cuda.cuCtxSetCurrent(self.dev.context))
     self.module = cuda.CUmodule()
@@ -53,6 +54,9 @@ class CUDAProgram:
     check(cuda.cuCtxSetCurrent(self.dev.context))
     if not hasattr(self, "vargs"):
       self.c_args, self.vargs = encode_args(args, vals)
+
+      # HACK: For MOCKGPU send the args struct itself.
+      if MOCKGPU: self.vargs = self.c_args # type: ignore[assignment]
     else:
       for i in range(len(args)): self.c_args.__setattr__(f'f{i}', args[i])
       for i in range(len(vals)): self.c_args.__setattr__(f'v{i}', vals[i])
@@ -64,6 +68,7 @@ class CUDAAllocator(LRUAllocator):
     super().__init__()
   def _alloc(self, size, options:BufferSpec):
     check(cuda.cuCtxSetCurrent(self.dev.context))
+    if options.external_ptr: return cuda.CUdeviceptr_v2(options.external_ptr)
     if options.host: return init_c_var(ctypes.c_void_p(), lambda x: check(cuda.cuMemHostAlloc(ctypes.byref(x), size, 0x01)))
     return init_c_var(cuda.CUdeviceptr(), lambda x: check(cuda.cuMemAlloc_v2(ctypes.byref(x), size)))
   def _free(self, opaque, options:BufferSpec):
@@ -114,7 +119,7 @@ class CUDADevice(Compiled):
 
     from tinygrad.runtime.graph.cuda import CUDAGraph
     super().__init__(device, CUDAAllocator(self), PTXRenderer(self.arch) if PTX else CUDARenderer(self.arch),
-                     PTXCompiler(self.arch) if PTX else CUDACompiler(self.arch), functools.partial(CUDAProgram, self), graph=CUDAGraph)
+                     PTXCompiler(self.arch) if PTX else CUDACompiler(self.arch), functools.partial(CUDAProgram, self), None if MOCKGPU else CUDAGraph)
 
   def synchronize(self):
     check(cuda.cuCtxSetCurrent(self.context))

@@ -3,7 +3,9 @@ from cereal import log
 from common.filter_simple import FirstOrderFilter
 from common.numpy_fast import interp, clip, mean
 from common.realtime import DT_MDL
-from openpilot.selfdrive.controls.lib.drive_helpers import CONTROL_N, MAX_LATERAL_JERK
+from opendbc.car.vehicle_model import ACCELERATION_DUE_TO_GRAVITY
+from openpilot.selfdrive.controls.lib.drive_helpers import CONTROL_N, MAX_LATERAL_JERK, MAX_LATERAL_ACCEL_NO_ROLL, \
+  clamp, MAX_CURVATURE
 from openpilot.selfdrive.controls.ntune import ntune_common_get
 from openpilot.selfdrive.modeld.constants import ModelConstants
 
@@ -102,7 +104,7 @@ class LanePlanner:
 
 
   @staticmethod
-  def get_lag_adjusted_curvature(v_ego, psis, curvatures, distances):
+  def get_lag_adjusted_curvature(v_ego, psis, curvatures, distances, roll):
     if len(psis) != CONTROL_N:
       psis = [0.0] * CONTROL_N
       curvatures = [0.0] * CONTROL_N
@@ -125,8 +127,14 @@ class LanePlanner:
     # This is the "desired rate of the setpoint" not an actual desired rate
     max_curvature_rate = MAX_LATERAL_JERK / (
           v_ego ** 2)  # inexact calculation, check https://github.com/commaai/openpilot/pull/24755
-    safe_desired_curvature = clip(desired_curvature,
+    new_curvature = clip(desired_curvature * path_factor,
                                   current_curvature_desired - max_curvature_rate * DT_MDL,
                                   current_curvature_desired + max_curvature_rate * DT_MDL)
 
-    return safe_desired_curvature * path_factor
+    roll_compensation = roll * ACCELERATION_DUE_TO_GRAVITY
+    max_lat_accel = MAX_LATERAL_ACCEL_NO_ROLL + roll_compensation
+    min_lat_accel = -MAX_LATERAL_ACCEL_NO_ROLL + roll_compensation
+    new_curvature, limited_accel = clamp(new_curvature, min_lat_accel / v_ego ** 2, max_lat_accel / v_ego ** 2)
+
+    new_curvature, limited_max_curv = clamp(new_curvature, -MAX_CURVATURE, MAX_CURVATURE)
+    return float(new_curvature), limited_accel or limited_max_curv

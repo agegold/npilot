@@ -102,7 +102,7 @@ class LongControl:
       self.stopping_accel_weight = 0.0
 
     else:  # LongCtrlState.pid
-      #error = a_target - CS.aEgo
+      #error = long_plan.aTarget - CS.aEgo
       error = long_plan.vTarget - CS.vEgo
       output_accel = self.pid.update(error, speed=CS.vEgo,
                                      feedforward=long_plan.aTarget * ntune_scc_get('aTargetFactor'))

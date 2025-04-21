@@ -62,11 +62,8 @@ class RadarInterface(RadarInterfaceBase):
     if self.rcp is None:
       return ret
 
-    errors = []
-
     if not self.rcp.can_valid:
-      errors.append("canError")
-    ret.errors = errors
+      ret.errors.canError = True
 
     if self.new_radar:
 

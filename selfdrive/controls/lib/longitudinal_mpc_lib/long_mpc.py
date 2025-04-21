@@ -3,7 +3,7 @@ import os
 import time
 import numpy as np
 from cereal import log
-from opendbc.car.interfaces import ACCEL_MIN
+from opendbc.car.interfaces import ACCEL_MIN, ACCEL_MAX
 from openpilot.common.realtime import DT_MDL
 from openpilot.common.swaglog import cloudlog
 from openpilot.selfdrive.controls.ntune import ntune_scc_get
@@ -59,6 +59,8 @@ FCW_IDXS = T_IDXS < 5.0
 T_DIFFS = np.diff(T_IDXS, prepend=[0.])
 COMFORT_BRAKE = 2.5
 STOP_DISTANCE = 5.0
+CRUISE_MIN_ACCEL = -1.2
+CRUISE_MAX_ACCEL = 1.6
 
 def get_jerk_factor(personality=log.LongitudinalPersonality.standard):
   if personality==log.LongitudinalPersonality.relaxed:
@@ -342,12 +344,6 @@ class LongitudinalMpc:
     lead_xv = self.extrapolate_lead(x_lead, v_lead, a_lead, a_lead_tau)
     return lead_xv
 
-  def set_accel_limits(self, min_a, max_a):
-    # TODO this sets a max accel limit, but the minimum limit is only for cruise decel
-    # needs refactor
-    self.cruise_min_a = min_a
-    self.max_a = max_a
-
   def update(self, carstate, radarstate, sm, v_cruise, x, v, a, j, personality=log.LongitudinalPersonality.standard):
     #t_follow = get_T_FOLLOW(personality)
     v_ego = self.x0[1]
@@ -372,8 +368,7 @@ class LongitudinalMpc:
     lead_1_obstacle = lead_xv_1[:,0] + get_stopped_equivalence_factor(lead_xv_1[:,1], comfort_brake)
 
     self.params[:,0] = ACCEL_MIN
-    # negative accel constraint causes problems because negative speed is not allowed
-    self.params[:,1] = max(0.0, self.max_a)
+    self.params[:,1] = ACCEL_MAX
 
     # Update in ACC mode or ACC/e2e blend
     if self.mode == 'acc':
@@ -387,9 +382,9 @@ class LongitudinalMpc:
 
       # Fake an obstacle for cruise, this ensures smooth acceleration to set speed
       # when the leads are no factor.
-      v_lower = v_ego + (T_IDXS * self.cruise_min_a * 1.05)
+      v_lower = v_ego + (T_IDXS * CRUISE_MIN_ACCEL * 1.05)
       # TODO does this make sense when max_a is negative?
-      v_upper = v_ego + (T_IDXS * self.max_a * 1.05)
+      v_upper = v_ego + (T_IDXS * CRUISE_MAX_ACCEL * 1.05)
       v_cruise_clipped = np.clip(v_cruise * np.ones(N+1),
                                  v_lower,
                                  v_upper)
