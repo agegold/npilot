@@ -62,7 +62,7 @@ class TorqueEstimator(ParameterEstimator):
 
   def __init__(self, CP, decimated=False, track_all_points=False):
     self.hist_len = int(HISTORY / DT_MDL)
-    self.lag = ntune_common_get('steerActuatorDelay') + .2  # from controlsd
+    self.lag = 0.0
     self.track_all_points = track_all_points  # for offline analysis, without max lateral accel or max steer torque filters
     if decimated:
       self.min_bucket_points = MIN_BUCKET_POINTS / 10
@@ -173,7 +173,6 @@ class TorqueEstimator(ParameterEstimator):
       self.filtered_params[param].update_alpha(self.decay)
 
   def handle_log(self, t, which, msg):
-    self.lag = ntune_common_get('steerActuatorDelay')+.2
     if which == "carControl":
       self.raw_points["carControl_t"].append(t + self.lag)
       self.raw_points["lat_active"].append(msg.latActive)
@@ -187,7 +186,8 @@ class TorqueEstimator(ParameterEstimator):
       self.raw_points["steer_override"].append(msg.steeringPressed)
     elif which == "liveCalibration":
       self.calibrator.feed_live_calib(msg)
-
+    elif which == "liveDelay":
+      self.lag = msg.lateralDelay
     # calculate lateral accel from past steering torque
     elif which == "livePose":
       if len(self.raw_points['steer_torque']) == self.hist_len:
@@ -267,7 +267,7 @@ def main(demo=False):
   config_realtime_process([0, 1, 2, 3], 5)
 
   pm = messaging.PubMaster(['liveTorqueParameters'])
-  sm = messaging.SubMaster(['carControl', 'carOutput', 'carState', 'liveCalibration', 'livePose'], poll='livePose')
+  sm = messaging.SubMaster(['carControl', 'carOutput', 'carState', 'liveCalibration', 'livePose', 'liveDelay'], poll='livePose')
 
   params = Params()
   estimator = TorqueEstimator(messaging.log_from_bytes(params.get("CarParams", block=True), car.CarParams))

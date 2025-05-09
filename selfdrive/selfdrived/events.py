@@ -670,6 +670,11 @@ EVENTS: dict[int, dict[str, Alert | AlertCallbackType]] = {
                               visual_alert=VisualAlert.brakePressed),
   },
 
+  EventName.steerDisengage: {
+    ET.USER_DISABLE: EngagementAlert(AudibleAlert.disengage),
+    ET.NO_ENTRY: NoEntryAlert("Steering Pressed"),
+  },
+
   EventName.preEnableStandstill: {
     ET.PRE_ENABLE: Alert(
       "작동을 위해 브레이크를 해제하세요",
