@@ -169,9 +169,6 @@ class nTune():
     if self.checkValue("steerRatio", 10.0, 20.0, 16.5):
       updated = True
 
-    if self.checkValue("steerActuatorDelay", 0., 0.8, 0.2):
-      updated = True
-
     if self.checkValue("pathFactor", 0.9, 1.1, 0.95):
       updated = True
 
@@ -258,7 +255,6 @@ class nTune():
         else:
           self.config["useLiveSteerRatio"] = 1.
           self.config["steerRatio"] = round(self.CP.steerRatio, 2)
-          self.config["steerActuatorDelay"] = round(self.CP.steerActuatorDelay, 2)
 
     except:
       pass

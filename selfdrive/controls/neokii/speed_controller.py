@@ -418,7 +418,6 @@ class SpeedController:
     exState.vCruiseKph = self.v_cruise_kph
     exState.cruiseMaxSpeed = self.real_set_speed_kph
     exState.applyMaxSpeed = self.cruise_speed_kph
-    exState.steerActuatorDelay = ntune_common_get('steerActuatorDelay')
     exState.longActuatorDelay = ntune_scc_get('longActuatorDelay')
     exState.slowingDownAlert = self.should_play_slowing_down(CS)
 

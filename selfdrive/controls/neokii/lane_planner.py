@@ -104,23 +104,21 @@ class LanePlanner:
 
 
   @staticmethod
-  def get_lag_adjusted_curvature(v_ego, psis, curvatures, distances, roll):
+  def get_lag_adjusted_curvature(v_ego, psis, curvatures, distances, roll, lateralDelay):
     if len(psis) != CONTROL_N:
       psis = [0.0] * CONTROL_N
       curvatures = [0.0] * CONTROL_N
       distances = [0.0] * CONTROL_N
     v_ego = max(1.0, v_ego)
 
-    # TODO this needs more thought, use .2s extra for now to estimate other delays
-    delay = ntune_common_get('steerActuatorDelay') + .2
     path_factor = ntune_common_get('pathFactor')
 
     # MPC can plan to turn the wheel and turn back before t_delay. This means
     # in high delay cases some corrections never even get commanded. So just use
     # psi to calculate a simple linearization of desired curvature
     current_curvature_desired = curvatures[0]
-    psi = interp(delay, ModelConstants.T_IDXS[:CONTROL_N], psis)
-    distance = max(interp(delay, ModelConstants.T_IDXS[:CONTROL_N], distances), 0.001)
+    psi = interp(lateralDelay, ModelConstants.T_IDXS[:CONTROL_N], psis)
+    distance = max(interp(lateralDelay, ModelConstants.T_IDXS[:CONTROL_N], distances), 0.001)
     average_curvature_desired = psi / distance
     desired_curvature = 2 * average_curvature_desired - current_curvature_desired
 

@@ -41,7 +41,7 @@ class Controls:
     self.sm = messaging.SubMaster(['liveParameters', 'liveTorqueParameters', 'modelV2', 'selfdriveState',
                                    'liveCalibration', 'livePose', 'longitudinalPlan', 'carState', 'carOutput',
                                    'driverMonitoringState', 'onroadEvents', 'driverAssistance',
-                                   'radarState', 'lateralPlan'
+                                   'radarState', 'lateralPlan', 'liveDelay'
                                    ], poll='selfdriveState')
     self.pm = messaging.PubMaster(['carControl', 'controlsState'])
 
@@ -130,7 +130,8 @@ class Controls:
 
     # Steering PID loop and lateral MPC
     if lat_plan.useLaneLines:
-      self.desired_curvature, curvature_limited = LanePlanner.get_lag_adjusted_curvature(CS.vEgo, lat_plan.psis, lat_plan.curvatures, lat_plan.distances, lp.roll)
+      live_delay = self.sm['liveDelay']
+      self.desired_curvature, curvature_limited = LanePlanner.get_lag_adjusted_curvature(CS.vEgo, lat_plan.psis, lat_plan.curvatures, lat_plan.distances, lp.roll, live_delay.lateralDelay)
     else:
       new_desired_curvature = model_v2.action.desiredCurvature if CC.latActive else self.curvature
       self.desired_curvature, curvature_limited = clip_curvature(CS.vEgo, self.desired_curvature, new_desired_curvature, lp.roll)

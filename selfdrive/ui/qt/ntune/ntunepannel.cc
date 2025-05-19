@@ -21,8 +21,8 @@ nTuneMainWidget::nTuneMainWidget(QWidget *parent)
     {
         TuneItemInfo(NTUNE_FILES["common"], "pathFactor", tr("If oversteer occurs in a corner, reduce it."),
                      0.95f, 0.9f, 1.1f, 0.01f, 2),
-        TuneItemInfo(NTUNE_FILES["common"], "steerActuatorDelay", "Steer Actuator Delay",
-                     0.2f, 0.0f, 0.8f, 0.05f, 2, "sec"),
+//        TuneItemInfo(NTUNE_FILES["common"], "steerActuatorDelay", "Steer Actuator Delay",
+//                     0.2f, 0.0f, 0.8f, 0.05f, 2, "sec"),
     },
     {
         TuneItemInfo(NTUNE_FILES["scc"], "longActuatorDelay", tr("Longitudinal Actuator Delay"),

@@ -252,9 +252,8 @@ struct CarState {
     applyMaxSpeed @6 :Float32;
     cruiseMaxSpeed @7 :Float32;
     autoTrGap @8 :UInt32;
-    steerActuatorDelay @9 :Float32;
-    longActuatorDelay @10 :Float32;
-    slowingDownAlert @11 :Bool;
+    longActuatorDelay @9 :Float32;
+    slowingDownAlert @10 :Bool;
   }
 
   struct Tpms {
