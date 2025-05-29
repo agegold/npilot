@@ -32,7 +32,7 @@ def manager_init() -> None:
     params.clear_all(ParamKeyType.DEVELOPMENT_ONLY)
 
   default_params: list[tuple[str, str | bytes]] = [
-    ("CompletedTrainingVersion", "0"),
+    ("CompletedTrainingVersion", "2"),
     ("DisengageOnAccelerator", "0"),
     ("GsmMetered", "1"),
     ("HasAcceptedTerms", "2"),
