@@ -35,15 +35,15 @@ def manager_init() -> None:
     ("CompletedTrainingVersion", "0"),
     ("DisengageOnAccelerator", "0"),
     ("GsmMetered", "1"),
-    ("HasAcceptedTerms", "0"),
+    ("HasAcceptedTerms", "2"),
     ("LanguageSetting", "main_en"),
     ("OpenpilotEnabledToggle", "1"),
     ("LongitudinalPersonality", str(log.LongitudinalPersonality.standard)),
 
     ("IsMetric", "1"),
     ("UseExternalNaviRoutes", "1"),
-    ("DriverCameraOnReverse", "1"),
-    ("SyncSetSpeedWhileGas", "1"),
+    ("DriverCameraOnReverse", "0"),
+    ("SyncSetSpeedWhileGas", "0"),
   ]
 
   if params.get_bool("RecordFrontLock"):
