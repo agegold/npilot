@@ -753,11 +753,6 @@ EVENTS: dict[int, dict[str, Alert | AlertCallbackType]] = {
   },
 
   EventName.noGps: {
-    ET.PERMANENT: Alert(
-      "GPS 수신불량",
-      "Ensure device has a clear view of the sky",
-      AlertStatus.normal, AlertSize.mid,
-      Priority.LOWER, VisualAlert.none, AudibleAlert.none, .2, creation_delay=600.)
   },
 
   EventName.tooDistracted: {
@@ -904,7 +899,7 @@ EVENTS: dict[int, dict[str, Alert | AlertCallbackType]] = {
   # causing the connection to the panda to be lost
   EventName.usbError: {
     ET.SOFT_DISABLE: soft_disable_alert("USB 에러 : 장치를 재시작 하세요"),
-    ET.PERMANENT: NormalPermanentAlert("USB 에러 : 장치를 재시작 하세요", ""),
+    ET.PERMANENT: NormalPermanentAlert("USB 에러 : 장치를 재시작 하세요"),
     ET.NO_ENTRY: NoEntryAlert("USB 에러 : 장치를 재시작 하세요"),
   },
 
