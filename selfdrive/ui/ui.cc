@@ -65,6 +65,9 @@ static void update_state(UIState *s) {
     const auto carState = sm["carState"].getCarState();
     scene.show_driver_camera = scene.driver_camera && carState.getGearShifter() == cereal::CarState::GearShifter::REVERSE;
   }
+
+  auto params = Params();
+  scene.recording_audio = params.getBool("RecordAudio") && scene.started;
 }
 
 void ui_update_params(UIState *s) {

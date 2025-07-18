@@ -73,8 +73,10 @@ _services: dict[str, tuple] = {
   "navThumbnail": (True, 0.),
   "qRoadEncodeIdx": (False, 20.),
   "userFlag": (True, 0., 1),
+  "soundPressure": (True, 10., 10),
+  "rawAudioData": (False, 20.),
   "microphone": (True, 10., 10),
-  
+
   "naviData": (False, 0.),
   "naviGps": (False, 0.),
   "naviObstacles": (False, 0.),
