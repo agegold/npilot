@@ -79,6 +79,16 @@ function launch {
 
   python ./opendbc/car/hyundai/values.py > /data/params/d/SupportedCars
 
+  # c3xl amplifier file change
+  C3XL=$(cat /data/params/d/HardwareC3xLite)
+
+  if [ "${C3XL}" = "1" ] && [[ ! "${EVENTSTAT}" == *"modified:   system/hardware/tici/amplifier.py"* ]]; then
+    cp -f $DIR/system/hardware/tici/amplifier.py $DIR/scripts/add/amplifier_org.py
+    cp -f $DIR/scripts/add/amplifier_c3xl.py $DIR/system/hardware/tici/amplifier.py
+  elif [ "${C3XL}" = "0" ] && [[ "${EVENTSTAT}" == *"modified:   system/hardware/tici/amplifier.py"* ]]; then
+    cp -f $DIR/scripts/add/amplifier_org.py $DIR/system/hardware/tici/amplifier.py
+  fi
+
   # start manager
   cd system/manager
   if [ ! -f $DIR/prebuilt ]; then
