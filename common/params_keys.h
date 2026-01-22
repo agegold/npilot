@@ -143,4 +143,5 @@ inline static std::unordered_map<std::string, ParamKeyAttributes> keys = {
     {"CarFingerprints", {PERSISTENT, STRING}},
     {"SendCarParamLogs", {PERSISTENT, STRING}},
     {"UseLanelines", {PERSISTENT, BOOL}},
+    {"HardwareC3xLite", PERSISTENT},
 };
