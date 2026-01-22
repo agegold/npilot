@@ -741,6 +741,13 @@ CommunityPanel::CommunityPanel(SettingsWindow *parent) : ListWidget(parent) {
       tr(""),
       "../assets/icon_openpilot.png",
     },*/
+    {
+      "Hardware C3xl",
+      tr("Hardware C3xl"),
+      tr(""),
+      "../assets/icon_openpilot.png",
+      true,
+    },
   };
 
   for (auto &[param, title, desc, icon, needs_restart] : toggle_defs) {
