@@ -742,7 +742,7 @@ CommunityPanel::CommunityPanel(SettingsWindow *parent) : ListWidget(parent) {
       "../assets/icon_openpilot.png",
     },*/
     {
-      "Hardware C3xl",
+      "HardwareC3xLite",
       tr("Hardware C3xl"),
       tr(""),
       "../assets/icon_openpilot.png",
